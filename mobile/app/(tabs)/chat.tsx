@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type ChatMessage, sendChatMessage } from "../../src/api/chat";
 import { Screen } from "../../src/components/Screen";
 
@@ -24,6 +25,7 @@ function createId(): string {
 }
 
 export default function ChatScreen() {
+  const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -69,7 +71,7 @@ export default function ChatScreen() {
       <KeyboardAvoidingView
         style={styles.keyboardAvoiding}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={80}
+        keyboardVerticalOffset={insets.top}
       >
         <FlatList
           ref={listRef}
