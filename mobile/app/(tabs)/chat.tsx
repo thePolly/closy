@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { type ChatMessage, sendChatMessage } from "../../src/api/chat";
+import { Screen } from "../../src/components/Screen";
 
 interface DisplayMessage extends ChatMessage {
   id: string;
@@ -64,58 +65,60 @@ export default function ChatScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={80}
-    >
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            Ask your stylist anything, like "What should I wear today?"
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.bubble,
-              item.role === "user" ? styles.userBubble : styles.assistantBubble,
-            ]}
-          >
-            <Text
-              style={
-                item.role === "user" ? styles.userBubbleText : styles.assistantBubbleText
-              }
-            >
-              {item.content}
+    <Screen style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoiding}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={80}
+      >
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messageList}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              Ask your stylist anything, like "What should I wear today?"
             </Text>
-          </View>
-        )}
-      />
-      {sending && <ActivityIndicator style={styles.typingIndicator} />}
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Message your stylist..."
-          placeholderTextColor="#8A8578"
-          multiline
+          }
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.bubble,
+                item.role === "user" ? styles.userBubble : styles.assistantBubble,
+              ]}
+            >
+              <Text
+                style={
+                  item.role === "user" ? styles.userBubbleText : styles.assistantBubbleText
+                }
+              >
+                {item.content}
+              </Text>
+            </View>
+          )}
         />
-        <Pressable
-          style={[styles.sendButton, (!input.trim() || sending) && styles.sendButtonDisabled]}
-          onPress={handleSend}
-          disabled={!input.trim() || sending}
-        >
-          <Text style={styles.sendButtonText}>Send</Text>
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+        {sending && <ActivityIndicator style={styles.typingIndicator} />}
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Message your stylist..."
+            placeholderTextColor="#8A8578"
+            multiline
+          />
+          <Pressable
+            style={[styles.sendButton, (!input.trim() || sending) && styles.sendButtonDisabled]}
+            onPress={handleSend}
+            disabled={!input.trim() || sending}
+          >
+            <Text style={styles.sendButtonText}>Send</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 }
 
@@ -123,6 +126,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FDF6EC",
+  },
+  keyboardAvoiding: {
+    flex: 1,
   },
   messageList: {
     padding: 16,
