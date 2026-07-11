@@ -12,7 +12,7 @@
 
 - [x] Create a bottom navigation bar with four tabs: Home, Wardrobe, Chat, and Settings.
 - [x] Home and Settings should display a simple placeholder screen for MVP-0.
-- [ ] Wardrobe and Chat should be fully functional.
+- [x] Wardrobe and Chat should be fully functional.
 
 ---
 
@@ -30,6 +30,6 @@
 
 ## Chat
 
-- [ ] Create a chat interface with a message history and text input.
-- [ ] Connect the chat to the Gemini API.
-- [ ] Display AI responses in the conversation.
+- [x] Create a chat interface with a message history and text input.
+- [x] Connect the chat to the Gemini API.
+- [x] Display AI responses in the conversation.
