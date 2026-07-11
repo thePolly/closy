@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { type ClothingItem, fetchWardrobe, uploadClothingItem } from "../../src/api/wardrobe";
+import { Screen } from "../../src/components/Screen";
 
 export default function WardrobeScreen() {
   const [items, setItems] = useState<ClothingItem[]>([]);
@@ -87,7 +88,7 @@ export default function WardrobeScreen() {
 
   if (previewUri) {
     return (
-      <View style={styles.previewContainer}>
+      <Screen style={styles.previewContainer}>
         <Image source={{ uri: previewUri }} style={styles.previewImage} />
         <View style={styles.previewActions}>
           <Pressable
@@ -109,12 +110,12 @@ export default function WardrobeScreen() {
             )}
           </Pressable>
         </View>
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <Screen style={styles.container}>
       {loading ? (
         <ActivityIndicator style={styles.loading} />
       ) : (
@@ -138,7 +139,7 @@ export default function WardrobeScreen() {
       <Pressable style={styles.addButton} onPress={handleAddPress}>
         <Text style={styles.addButtonText}>+</Text>
       </Pressable>
-    </View>
+    </Screen>
   );
 }
 

@@ -1,11 +1,12 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
+import { Screen } from "../../src/components/Screen";
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
+    <Screen style={styles.container}>
       <Text style={styles.title}>Home</Text>
       <Text style={styles.subtitle}>Placeholder for MVP-0</Text>
-    </View>
+    </Screen>
   );
 }
 
