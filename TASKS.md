@@ -18,13 +18,13 @@
 
 ## Wardrobe
 
-- [ ] Allow the user to take a photo using the camera.
-- [ ] Allow the user to choose an existing photo from the gallery.
-- [ ] Display a preview of the selected photo before uploading.
-- [ ] After selecting a photo, display **Upload** and **Cancel** buttons.
-- [ ] If the user presses **Cancel**, return to the Wardrobe screen without saving.
-- [ ] If the user presses **Upload**, save the image and display it in the wardrobe gallery.
-- [ ] Display uploaded clothing items as a grid of square image cards.
+- [x] Allow the user to take a photo using the camera.
+- [x] Allow the user to choose an existing photo from the gallery.
+- [x] Display a preview of the selected photo before uploading.
+- [x] After selecting a photo, display **Upload** and **Cancel** buttons.
+- [x] If the user presses **Cancel**, return to the Wardrobe screen without saving.
+- [x] If the user presses **Upload**, save the image and display it in the wardrobe gallery.
+- [x] Display uploaded clothing items as a grid of square image cards.
 
 ---
 

@@ -1,32 +1,233 @@
-import { StyleSheet, Text, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { type ClothingItem, fetchWardrobe, uploadClothingItem } from "../../src/api/wardrobe";
 
 export default function WardrobeScreen() {
+  const [items, setItems] = useState<ClothingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const loadItems = useCallback(async () => {
+    try {
+      setItems(await fetchWardrobe());
+    } catch (error) {
+      Alert.alert("Couldn't load wardrobe", error instanceof Error ? error.message : String(error));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  const pickFromCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Camera access needed", "Enable camera access in Settings to take a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
+    if (!result.canceled) {
+      setPreviewUri(result.assets[0].uri);
+    }
+  };
+
+  const pickFromLibrary = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Photo access needed", "Enable photo library access in Settings to choose a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setPreviewUri(result.assets[0].uri);
+    }
+  };
+
+  const handleAddPress = () => {
+    Alert.alert("Add clothing item", undefined, [
+      { text: "Take Photo", onPress: pickFromCamera },
+      { text: "Choose from Library", onPress: pickFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const handleCancelPreview = () => {
+    setPreviewUri(null);
+  };
+
+  const handleUpload = async () => {
+    if (!previewUri) return;
+    setUploading(true);
+    try {
+      const newItem = await uploadClothingItem(previewUri);
+      setItems((current) => [newItem, ...current]);
+      setPreviewUri(null);
+    } catch (error) {
+      Alert.alert("Upload failed", error instanceof Error ? error.message : String(error));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (previewUri) {
+    return (
+      <View style={styles.previewContainer}>
+        <Image source={{ uri: previewUri }} style={styles.previewImage} />
+        <View style={styles.previewActions}>
+          <Pressable
+            style={[styles.previewButton, styles.cancelButton]}
+            onPress={handleCancelPreview}
+            disabled={uploading}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.previewButton, styles.uploadButton]}
+            onPress={handleUpload}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <ActivityIndicator color="#FDF6EC" />
+            ) : (
+              <Text style={styles.uploadButtonText}>Upload</Text>
+            )}
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Wardrobe</Text>
-      <Text style={styles.subtitle}>
-        Upload and browse your clothes here.
-      </Text>
+      {loading ? (
+        <ActivityIndicator style={styles.loading} />
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          contentContainerStyle={styles.grid}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>
+              No clothes yet. Tap + to add your first item.
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Image source={{ uri: item.image_url }} style={styles.cardImage} />
+            </View>
+          )}
+        />
+      )}
+      <Pressable style={styles.addButton} onPress={handleAddPress}>
+        <Text style={styles.addButtonText}>+</Text>
+      </Pressable>
     </View>
   );
 }
 
+const CARD_SIZE = 110;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     backgroundColor: "#FDF6EC",
   },
-  title: {
-    fontSize: 24,
+  loading: {
+    flex: 1,
+  },
+  grid: {
+    padding: 12,
+    flexGrow: 1,
+  },
+  emptyText: {
+    marginTop: 80,
+    textAlign: "center",
+    color: "#8A8578",
+    fontSize: 14,
+    paddingHorizontal: 32,
+  },
+  card: {
+    width: CARD_SIZE,
+    height: CARD_SIZE,
+    margin: 4,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#EFE6D8",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  addButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#2C2A26",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  addButtonText: {
+    color: "#FDF6EC",
+    fontSize: 28,
+    lineHeight: 30,
+  },
+  previewContainer: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  previewImage: {
+    flex: 1,
+    resizeMode: "contain",
+  },
+  previewActions: {
+    flexDirection: "row",
+    padding: 16,
+    gap: 12,
+    backgroundColor: "#000",
+  },
+  previewButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButton: {
+    backgroundColor: "#3A3A3A",
+  },
+  cancelButtonText: {
+    color: "#FDF6EC",
     fontWeight: "600",
   },
-  subtitle: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#8A8578",
-    textAlign: "center",
-    paddingHorizontal: 32,
+  uploadButton: {
+    backgroundColor: "#D9A441",
+  },
+  uploadButtonText: {
+    color: "#2C2A26",
+    fontWeight: "600",
   },
 });
