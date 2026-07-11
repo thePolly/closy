@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: closy
+      POSTGRES_PASSWORD: closy
+      POSTGRES_DB: closy
+    ports:
+      - "5432:5432"
+    volumes:
+      - closy-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  closy-postgres-data:

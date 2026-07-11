@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "--prefix", "mobile", "web"],
       "port": 8081
+    },
+    {
+      "name": "backend-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "--prefix", "backend", "dev"],
+      "port": 3000
     }
   ]
 }
