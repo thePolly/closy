@@ -1,7 +1,35 @@
 # Closy
 
-AI-native wardrobe assistant app.
+AI-native wardrobe companion.
+
+## Features
+
+- Upload your wardrobe
+- AI stylist
+- Daily outfit recommendations
+- Weather integration
+- Outfit visualization
+
+## Tech Stack
+
+Frontend
+
+- React Native
+- Expo
+
+Backend
+
+- TypeScript
+- Node.js
+
+Database
+
+- PostgreSQL
+
+AI
+
+- Gemini API
 
 ## Status
 
-Early stage — specifications and definitions are being gathered before implementation begins.
+MVP-0 in development
