@@ -2,7 +2,7 @@
 
 ## Project Setup
 
-- [ ] Create the React Native Expo project in the `/mobile` folder.
+- [x] Create the React Native Expo project in the `/mobile` folder.
 - [ ] Create the Node.js TypeScript backend in the `/backend` folder.
 - [ ] Configure PostgreSQL and verify the backend can connect to the database.
 
