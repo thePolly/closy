@@ -87,7 +87,7 @@ export default function ClothingDetailsScreen() {
 
   if (loading) {
     return (
-      <Screen style={styles.centered}>
+      <Screen style={styles.centered} edges={[]}>
         <ActivityIndicator />
       </Screen>
     );
@@ -95,7 +95,7 @@ export default function ClothingDetailsScreen() {
 
   if (loadError || !item) {
     return (
-      <Screen style={styles.centered}>
+      <Screen style={styles.centered} edges={[]}>
         <Text style={styles.errorText}>
           {loadError ?? "Couldn't find this clothing item."}
         </Text>
@@ -107,7 +107,7 @@ export default function ClothingDetailsScreen() {
   }
 
   return (
-    <Screen style={styles.container}>
+    <Screen style={styles.container} edges={[]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image source={{ uri: item.image_url }} style={styles.image} />
 
