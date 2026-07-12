@@ -14,7 +14,7 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 
 **Chosen:** SDK 54.
 **Alternative:** SDK 57 (what the project started on).
-**Why:** Not really a choice — the Expo Go app on the test phone only supported SDK 54. SDK 57 and 56 both failed with "incompatible version." Downgraded until the versions matched.
+**Why:** Not really a choice — the Expo Go app on the target device only supported SDK 54. SDK 57 and 56 both failed with "incompatible version." Downgraded until the versions matched.
 
 ### One shared `Screen` component instead of repeating code per screen
 
@@ -26,21 +26,21 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 
 **Chosen:** An environment variable holding the backend's address (e.g. `http://192.168.1.10:3000`).
 **Alternative:** Hardcode `http://localhost:3000` in the code.
-**Why:** The phone and the dev computer are two different devices. On the phone, "localhost" means the phone itself, not your computer — so it would never reach the backend. The env var lets you point at your computer's real network address instead.
+**Why:** The phone and the development machine are two different devices. On the phone, "localhost" means the phone itself, not the development machine — so it would never reach the backend. The env var lets this be pointed at the development machine's real network address instead.
 
 ## Backend
 
 ### Plain `pg` client instead of an ORM (Prisma/Drizzle)
 
-**Chosen:** The `pg` library — you write the SQL yourself, `pg` just sends it to the database and gives back the result.
-**Alternative:** An ORM like Prisma or Drizzle — you write JavaScript/TypeScript (e.g. `db.clothingItem.findMany()`) and the ORM translates it into SQL for you, plus gives you autocomplete and generated types.
+**Chosen:** The `pg` library — SQL is written by hand, and `pg` just sends it to the database and returns the result.
+**Alternative:** An ORM like Prisma or Drizzle — code is written in JavaScript/TypeScript (e.g. `db.clothingItem.findMany()`) and the ORM translates it into SQL, plus provides autocomplete and generated types.
 **Why:** We only have one table (`clothing_item`). The SQL for it is 3-4 lines — simpler to write by hand than to set up and configure a whole ORM (extra dependency, migration files, code generation). Worth switching to an ORM if the number of tables grows.
 
 ### `multer` saving files to disk instead of keeping them in memory
 
 **Chosen:** Save uploaded photos straight to a folder on the server's disk.
 **Alternative:** Keep the uploaded file in the server's memory (RAM) instead of writing it to disk.
-**Why:** Keeping files in memory only makes sense if you're immediately forwarding them somewhere else (like straight to cloud storage). We don't have cloud storage wired up yet, so writing to disk is the simpler, safer default — it won't fill up server memory if several people upload large photos at once.
+**Why:** Keeping files in memory only makes sense if they're immediately forwarded somewhere else (like straight to cloud storage). Cloud storage isn't wired up yet, so writing to disk is the simpler, safer default — it won't fill up server memory if several people upload large photos at once.
 
 ### One shared error handler instead of handling errors in each route
 
@@ -64,7 +64,7 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 
 ### No database table for chat history
 
-**Chosen:** Keep the conversation in the phone app's memory only (resets when you close the app), and send the recent messages along with each new question.
+**Chosen:** Keep the conversation in the phone app's memory only (resets when the app is closed), and send the recent messages along with each new question.
 **Alternative:** Save every chat message to the database, so conversations persist between app restarts.
 **Why:** The MVP-0 spec only asked for a wardrobe table, not chat history. Adding a whole new table and saving/loading logic for something not yet required would be extra work with no immediate use.
 
@@ -74,10 +74,10 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 
 **Chosen:** Every change gets its own branch, gets pushed, and opens a PR for review before merging.
 **Alternative:** Commit and push directly to `main` (what we did at the very start of the project).
-**Why:** Direct pushes mean the only way to know what changed is reading a chat summary after the fact. A PR gives you an actual checkpoint to look at the real diff and decide before it lands.
+**Why:** Direct pushes mean the only way to know what changed is reading a summary after the fact. A PR gives an actual checkpoint to review the real diff before it lands.
 
 ### GitHub Issues for trackable bugs/tasks, alongside TASKS.md
 
 **Chosen:** Bugs/tasks that need discussion or tracking get a GitHub Issue; PRs reference it (`Closes #N`) so it closes automatically when merged.
 **Alternative:** Track everything only as checkboxes in TASKS.md.
-**Why:** TASKS.md is good for the high-level MVP checklist, but a GitHub Issue gives an individual bug or task its own place for discussion and a visible history — matches how you described wanting this workflow to work from the start of the project.
+**Why:** TASKS.md is good for the high-level MVP checklist, but a GitHub Issue gives an individual bug or task its own place for discussion and a visible history.
