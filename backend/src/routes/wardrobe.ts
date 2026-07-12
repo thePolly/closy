@@ -3,12 +3,14 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Router } from "express";
 import multer from "multer";
-import { detectClothing } from "../ai/detectClothing";
+import { analyzeClothing, type ClothingAnalysis } from "../ai/analyzeClothing";
 import { pool } from "../db/pool";
+
+const UPLOADS_DIR = path.join(__dirname, "../../uploads");
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: path.join(__dirname, "../../uploads"),
+    destination: UPLOADS_DIR,
     filename: (_req, file, callback) => {
       const extension = path.extname(file.originalname) || ".jpg";
       callback(null, `${randomUUID()}${extension}`);
@@ -24,11 +26,43 @@ const upload = multer({
   },
 });
 
+const SELECT_COLUMNS = `
+  id, image_url, clothing_type, fit, primary_color, secondary_color, pattern,
+  season, style, material, suitable_occasions, confidence_score, analysis_status,
+  created_at
+`;
+
+const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".heic": "image/heic",
+};
+
+function mimeTypeForFile(filename: string): string {
+  const extension = path.extname(filename).toLowerCase();
+  return MIME_TYPES_BY_EXTENSION[extension] ?? "image/jpeg";
+}
+
+async function runAnalysis(
+  imageBuffer: Buffer,
+  mimeType: string
+): Promise<{ status: "completed"; analysis: ClothingAnalysis } | { status: "failed" }> {
+  try {
+    const analysis = await analyzeClothing(imageBuffer, mimeType);
+    return { status: "completed", analysis };
+  } catch (error) {
+    console.error("Clothing analysis failed", error);
+    return { status: "failed" };
+  }
+}
+
 export const wardrobeRouter = Router();
 
 wardrobeRouter.get("/", async (_req, res) => {
   const result = await pool.query(
-    "SELECT id, image_url, clothing_type, color, created_at FROM clothing_item ORDER BY created_at DESC"
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item ORDER BY created_at DESC`
   );
   res.json(result.rows);
 });
@@ -40,16 +74,84 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
   }
 
   const imageBuffer = await readFile(req.file.path);
-  const { clothingType, color } = await detectClothing(imageBuffer);
-
+  const outcome = await runAnalysis(imageBuffer, req.file.mimetype);
   const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
 
+  const fields =
+    outcome.status === "completed"
+      ? [
+          outcome.analysis.clothingType,
+          outcome.analysis.fit,
+          outcome.analysis.primaryColor,
+          outcome.analysis.secondaryColor,
+          outcome.analysis.pattern,
+          outcome.analysis.season,
+          outcome.analysis.style,
+          outcome.analysis.material,
+          outcome.analysis.suitableOccasions,
+          outcome.analysis.confidenceScore,
+          "completed",
+        ]
+      : [null, null, null, null, null, null, null, null, null, null, "failed"];
+
   const result = await pool.query(
-    `INSERT INTO clothing_item (image_url, clothing_type, color)
-     VALUES ($1, $2, $3)
-     RETURNING id, image_url, clothing_type, color, created_at`,
-    [imageUrl, clothingType, color]
+    `INSERT INTO clothing_item (
+       image_url, clothing_type, fit, primary_color, secondary_color, pattern,
+       season, style, material, suitable_occasions, confidence_score, analysis_status
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     RETURNING ${SELECT_COLUMNS}`,
+    [imageUrl, ...fields]
   );
 
   res.status(201).json(result.rows[0]);
+});
+
+wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
+  const { id } = req.params;
+
+  const existing = await pool.query(
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE id = $1`,
+    [id]
+  );
+
+  if (existing.rows.length === 0) {
+    res.status(404).json({ message: "Clothing item not found" });
+    return;
+  }
+
+  const { image_url: imageUrl } = existing.rows[0];
+  const filename = path.basename(new URL(imageUrl).pathname);
+  const imageBuffer = await readFile(path.join(UPLOADS_DIR, filename));
+  const outcome = await runAnalysis(imageBuffer, mimeTypeForFile(filename));
+
+  if (outcome.status === "failed") {
+    await pool.query("UPDATE clothing_item SET analysis_status = 'failed' WHERE id = $1", [id]);
+    res.status(502).json({ message: "Analysis failed again. Please try again later." });
+    return;
+  }
+
+  const result = await pool.query(
+    `UPDATE clothing_item SET
+       clothing_type = $1, fit = $2, primary_color = $3, secondary_color = $4,
+       pattern = $5, season = $6, style = $7, material = $8,
+       suitable_occasions = $9, confidence_score = $10, analysis_status = 'completed'
+     WHERE id = $11
+     RETURNING ${SELECT_COLUMNS}`,
+    [
+      outcome.analysis.clothingType,
+      outcome.analysis.fit,
+      outcome.analysis.primaryColor,
+      outcome.analysis.secondaryColor,
+      outcome.analysis.pattern,
+      outcome.analysis.season,
+      outcome.analysis.style,
+      outcome.analysis.material,
+      outcome.analysis.suitableOccasions,
+      outcome.analysis.confidenceScore,
+      id,
+    ]
+  );
+
+  res.json(result.rows[0]);
 });

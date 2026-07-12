@@ -16,7 +16,7 @@ chatRouter.post("/", async (req, res) => {
   }
 
   const wardrobeResult = await pool.query(
-    "SELECT clothing_type, color FROM clothing_item ORDER BY created_at DESC"
+    "SELECT clothing_type, primary_color FROM clothing_item ORDER BY created_at DESC"
   );
 
   const reply = await generateStylistReply(
@@ -24,7 +24,7 @@ chatRouter.post("/", async (req, res) => {
     history ?? [],
     wardrobeResult.rows.map((row) => ({
       clothingType: row.clothing_type,
-      color: row.color,
+      primaryColor: row.primary_color,
     }))
   );
 

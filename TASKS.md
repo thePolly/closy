@@ -47,12 +47,12 @@
 
 ## AI Clothing Analysis
 
-- [ ] Extend the `clothing_item` table with `fit`, `primary_color`, `secondary_color`, `pattern`, `season`, `style`, `material`, `suitable_occasions`, `confidence_score`, and `analysis_status`.
-- [ ] On upload, send the image to Gemini (synchronously) and parse its response into the new structured fields.
-- [ ] On success, store the metadata, confidence score, and set `analysis_status` to `completed`.
-- [ ] On failure, still save the image, leave metadata empty, and set `analysis_status` to `failed`.
-- [ ] Add a retry endpoint that re-runs analysis for a single item on demand.
-- [ ] `GET /wardrobe` (and any single-item fetch) returns the new metadata fields.
+- [x] Extend the `clothing_item` table with `fit`, `primary_color`, `secondary_color`, `pattern`, `season`, `style`, `material`, `suitable_occasions`, `confidence_score`, and `analysis_status`.
+- [x] On upload, send the image to Gemini (synchronously) and parse its response into the new structured fields.
+- [x] On success, store the metadata, confidence score, and set `analysis_status` to `completed`.
+- [x] On failure, still save the image, leave metadata empty, and set `analysis_status` to `failed`.
+- [x] Add a retry endpoint that re-runs analysis for a single item on demand.
+- [x] `GET /wardrobe` (and any single-item fetch) returns the new metadata fields.
 
 ---
 
