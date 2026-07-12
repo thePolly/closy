@@ -1,106 +1,143 @@
-# Closy MVP-0
+# Closy MVP-1
 
-**Version:** 0.1
+**Version:** 0.2
 
-**Status:** Ready for Development
+**Status:** In Development
 
 ---
 
 # Goal
 
-Validate the core product experience.
+Transform the wardrobe into an intelligent collection by automatically analyzing uploaded clothing items.
 
-A user should be able to upload clothing items and receive outfit recommendations from an AI stylist.
-
----
-
-# Scope
-
-MVP-0 includes only the essential functionality required to validate the product idea.
+The AI should understand each clothing item and store structured metadata that will enable future features such as outfit recommendations, wardrobe insights, filtering, and personalized styling.
 
 ---
 
-# Feature 1 — AI Wardrobe
+# Feature 1 — Home Screen
 
 ## Description
 
-Users can take a photo of a clothing item.
+Introduce the Home screen to establish the future user experience.
 
-The AI automatically analyzes the image and adds it to the user's wardrobe.
-
-No manual categorization is required.
+For MVP-1, all recommendations are hardcoded and do not depend on user data.
 
 ---
 
 ## Requirements
 
-The user can:
+The Home screen displays:
 
-- take a photo of a clothing item
-- upload an existing photo
-- see all uploaded clothing items in the wardrobe
+- a personalized greeting
+- a hardcoded outfit recommendation
+- a placeholder recommendation card
 
-The AI automatically detects:
+---
+
+## Acceptance Criteria
+
+- The Home screen is accessible from the bottom navigation.
+- All UI elements render correctly.
+- The layout is responsive on supported devices.
+
+---
+
+# Feature 2 — AI Clothing Analysis
+
+## Description
+
+After a clothing item is uploaded, the backend sends the image to Gemini for analysis, synchronously as part of the upload request.
+
+Gemini returns structured metadata describing the clothing item.
+
+The metadata is stored together with the uploaded image.
+
+---
+
+## Requirements
+
+For every uploaded clothing item, Gemini should identify:
 
 - clothing type
+- fit
+  - Slim Fit
+  - Regular Fit
+  - Relaxed Fit
+  - Oversized
 - primary color
-
-The detected information is stored together with the image.
+- secondary color (if applicable)
+- pattern
+  - Solid
+  - Striped
+  - Plaid
+  - Polka Dot
+  - Floral
+  - Graphic
+- season
+- style
+  - Casual
+  - Business
+  - Smart Casual
+  - Formal
+  - Evening
+  - Sport
+- material (when confidently identifiable)
+- suitable occasions (if recognizable)
+- one overall confidence score for the detection (not per attribute)
 
 ---
 
-## Out of Scope
+## Analysis Failure Handling
 
-The user cannot manually edit categories.
-
-Filtering and advanced organization are not included in MVP-0.
+- Analysis runs synchronously during the upload request — the client waits for the result.
+- If analysis fails (Gemini error, timeout, malformed response), the clothing item is still saved with its image; `analysis_status` is set to `failed` and metadata fields are left empty.
+- The Wardrobe Details screen (Feature 3) shows a **Retry analysis** action for any item with `analysis_status = failed`, which re-runs the same synchronous analysis on demand.
+- No background jobs or automatic retry scheduling in MVP-1 — retries are always user-triggered.
 
 ---
 
 ## Acceptance Criteria
 
-- User can upload a clothing photo.
-- AI successfully analyzes the image.
-- Clothing appears inside the wardrobe.
-- Image is stored successfully.
-- AI metadata is stored successfully.
+- Uploaded images are sent to Gemini as part of the upload request.
+- On success, structured metadata and a confidence score are stored in PostgreSQL, and `analysis_status` is set to `completed`.
+- On failure, the image is still stored, `analysis_status` is set to `failed`, and no partial/incorrect metadata is saved.
+- Metadata can be retrieved through the backend API.
+- A failed item can be retried through a manual action; on success it updates to `completed` with the new metadata.
 
 ---
 
-# Feature 2 — AI Stylist Chat
+# Feature 3 — Wardrobe Details
 
 ## Description
 
-Users can chat with their personal AI stylist.
-
-The stylist uses the uploaded wardrobe to answer outfit-related questions.
-
----
-
-## Example Questions
-
-- What should I wear today?
-- What matches these jeans?
-- I have dinner tonight.
-- Give me a casual outfit.
+Users can view AI-generated information for each clothing item.
 
 ---
 
 ## Requirements
 
-The stylist:
+Selecting a clothing item opens a details screen displaying:
 
-- knows the user's wardrobe
-- answers conversationally
-- explains outfit choices
+- clothing image
+- clothing type
+- fit
+- primary and secondary color
+- pattern
+- season
+- style
+- material
+- suitable occasions
+- overall confidence score
+- a **Retry analysis** action, shown only when `analysis_status` is `failed`
 
 ---
 
 ## Acceptance Criteria
 
-- User can send a message.
-- AI returns a response.
-- Responses use clothing from the wardrobe whenever possible.
+- Users can open any clothing item.
+- All available metadata is displayed correctly.
+- Missing metadata is handled gracefully (fields with no value are omitted or shown as "Not detected", not left blank/broken).
+- Items with failed analysis show the retry action; using it re-runs analysis and updates the screen on success.
 
 ---
 
@@ -108,57 +145,60 @@ The stylist:
 
 ## Clothing Item
 
-Each clothing item contains:
+Extends the MVP-0 `clothing_item` table (`id`, `image_url`, `created_at`) with:
 
-- id
-- image
-- detected clothing type
-- detected color
-- created date
+- `clothing_type`
+- `fit`
+- `primary_color`
+- `secondary_color` (nullable)
+- `pattern`
+- `season`
+- `style`
+- `material` (nullable)
+- `suitable_occasions` (nullable)
+- `confidence_score` (single overall value)
+- `analysis_status` — `pending` | `completed` | `failed`
 
 ---
 
 # Out of Scope
 
-The following features are NOT included in MVP-0:
+The following features are **NOT** included in MVP-1:
 
-- Authentication
+- AI outfit recommendations
 - Weather integration
-- Notifications
-- Outfit image generation
 - Google Calendar integration
-- Shopping recommendations
-- Companion personalities
-- Wardrobe insights
-- Clothing editing
-- Manual categorization
-- Filters
-- Outfit history
+- Push notifications
+- AI-generated outfit images
+- Shopping assistant
+- Multiple AI companions
+- Automatic daily outfit generation
+- Background/async analysis processing or scheduled auto-retries
 
 ---
 
 # Technical Stack
 
-Frontend
+## Frontend
 
 - React Native
 - Expo
 - TypeScript
 
-Backend
+## Backend
 
 - Node.js
 - TypeScript
 
-Database
+## Database
 
 - PostgreSQL
 
-Storage
+## Storage
 
 - Supabase Storage
 
-AI
+## AI
 
 - Gemini API
 
@@ -166,9 +206,9 @@ AI
 
 # Definition of Success
 
-MVP-0 is considered successful when a user can:
+MVP-1 is considered successful when:
 
-1. Upload clothing photos.
-2. Build a digital wardrobe.
-3. Chat with the AI stylist.
-4. Receive useful outfit recommendations based on the uploaded wardrobe.
+1. Every newly uploaded clothing item is automatically analyzed by Gemini and stored with structured metadata.
+2. Users can view that metadata for any item on the Wardrobe Details screen.
+3. A failed analysis never blocks the user — the image and item remain usable, and analysis can be retried on demand.
+4. The Home screen exists as the foundation for future personalized recommendations.
