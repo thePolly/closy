@@ -1,11 +1,34 @@
-import { StyleSheet, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
+import { Card } from "../../src/components/Card";
 import { Screen } from "../../src/components/Screen";
+import { colors } from "../../src/theme/colors";
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning!";
+  if (hour < 18) return "Good afternoon!";
+  return "Good evening!";
+}
 
 export default function HomeScreen() {
   return (
     <Screen style={styles.container}>
-      <Text style={styles.title}>Home</Text>
-      <Text style={styles.subtitle}>Placeholder for MVP-0</Text>
+      <Text style={styles.greeting}>{getGreeting()}</Text>
+      <Text style={styles.subtitle}>Here's your look for today</Text>
+
+      <Card style={styles.card}>
+        <Text style={styles.cardLabel}>Today</Text>
+
+        <View style={styles.placeholderImage}>
+          <Ionicons name="shirt-outline" size={48} color={colors.accent} />
+        </View>
+
+        <Text style={styles.outfitTitle}>White shirt + jeans</Text>
+        <Text style={styles.outfitDescription}>
+          Simple, comfortable, and easy to style.
+        </Text>
+      </Card>
     </Screen>
   );
 }
@@ -13,17 +36,45 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FDF6EC",
+    backgroundColor: colors.background,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
+  greeting: {
+    fontFamily: "PlayfairDisplay_700Bold",
+    fontSize: 26,
+    color: colors.inkPrimary,
   },
   subtitle: {
-    marginTop: 8,
+    marginTop: 4,
     fontSize: 14,
-    color: "#8A8578",
+    color: colors.inkSecondary,
+  },
+  card: {
+    marginTop: 24,
+  },
+  cardLabel: {
+    fontFamily: "PlayfairDisplay_700Bold",
+    fontSize: 18,
+    color: colors.inkPrimary,
+  },
+  placeholderImage: {
+    marginTop: 16,
+    height: 180,
+    borderRadius: 12,
+    backgroundColor: colors.accentSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  outfitTitle: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.inkPrimary,
+  },
+  outfitDescription: {
+    marginTop: 4,
+    fontSize: 14,
+    color: colors.inkSecondary,
   },
 });

@@ -30,7 +30,8 @@
           "photosPermission": "Closy needs access to your photos so you can add clothing items to your wardrobe.",
           "cameraPermission": "Closy needs access to your camera so you can photograph clothing items."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
