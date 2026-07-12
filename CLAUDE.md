@@ -8,6 +8,8 @@ Always read the following documents before starting work:
 2. SPEC.md
 3. TASKS.md
 
+When working on frontend tasks check design/DESIGN.md file for styles.
+
 Implement only the current MVP unless explicitly instructed otherwise.
 
 ---
