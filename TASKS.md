@@ -40,8 +40,8 @@
 
 ## Home
 
-- [ ] Build the Home screen: personalized greeting, hardcoded outfit recommendation, and a placeholder recommendation card.
-- [ ] Layout renders correctly on both small and large device sizes.
+- [x] Build the Home screen: personalized greeting, hardcoded outfit recommendation, and a placeholder recommendation card.
+- [x] Layout renders correctly on both small and large device sizes.
 
 ---
 
