@@ -4,8 +4,8 @@ export interface ChatTurn {
 }
 
 export interface ClothingSummary {
-  clothingType: string;
-  color: string;
+  clothingType: string | null;
+  primaryColor: string | null;
 }
 
 const GEMINI_MODEL = "gemini-flash-latest";
@@ -20,9 +20,11 @@ export async function generateStylistReply(
     throw new Error("GEMINI_API_KEY environment variable is not set");
   }
 
+  const analyzed = wardrobe.filter((item) => item.clothingType && item.primaryColor);
+
   const wardrobeSummary =
-    wardrobe.length > 0
-      ? wardrobe.map((item) => `- ${item.color} ${item.clothingType}`).join("\n")
+    analyzed.length > 0
+      ? analyzed.map((item) => `- ${item.primaryColor} ${item.clothingType}`).join("\n")
       : "The wardrobe is currently empty.";
 
   const systemInstruction = `You are Closy, a warm and encouraging personal AI stylist. You help the user decide what to wear using their wardrobe listed below. Prefer items from the wardrobe when recommending an outfit, and briefly explain why you picked it. Keep replies conversational and concise.
