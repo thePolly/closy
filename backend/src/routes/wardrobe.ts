@@ -67,6 +67,20 @@ wardrobeRouter.get("/", async (_req, res) => {
   res.json(result.rows);
 });
 
+wardrobeRouter.get("/:id", async (req, res) => {
+  const result = await pool.query(
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE id = $1`,
+    [req.params.id]
+  );
+
+  if (result.rows.length === 0) {
+    res.status(404).json({ message: "Clothing item not found" });
+    return;
+  }
+
+  res.json(result.rows[0]);
+});
+
 wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
   if (!req.file) {
     res.status(400).json({ message: "Image file is required" });

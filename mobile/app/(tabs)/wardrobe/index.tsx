@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -10,10 +11,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { type ClothingItem, fetchWardrobe, uploadClothingItem } from "../../src/api/wardrobe";
-import { Screen } from "../../src/components/Screen";
+import { type ClothingItem, fetchWardrobe, uploadClothingItem } from "../../../src/api/wardrobe";
+import { Screen } from "../../../src/components/Screen";
+import { colors } from "../../../src/theme/colors";
 
 export default function WardrobeScreen() {
+  const router = useRouter();
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -104,7 +107,7 @@ export default function WardrobeScreen() {
             disabled={uploading}
           >
             {uploading ? (
-              <ActivityIndicator color="#FDF6EC" />
+              <ActivityIndicator color={colors.background} />
             ) : (
               <Text style={styles.uploadButtonText}>Upload</Text>
             )}
@@ -130,9 +133,12 @@ export default function WardrobeScreen() {
             </Text>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <Pressable
+              style={styles.card}
+              onPress={() => router.push(`/wardrobe/${item.id}`)}
+            >
               <Image source={{ uri: item.image_url }} style={styles.cardImage} />
-            </View>
+            </Pressable>
           )}
         />
       )}
@@ -148,7 +154,7 @@ const CARD_SIZE = 110;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FDF6EC",
+    backgroundColor: colors.background,
   },
   loading: {
     flex: 1,
@@ -160,7 +166,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 80,
     textAlign: "center",
-    color: "#8A8578",
+    color: colors.inkMuted,
     fontSize: 14,
     paddingHorizontal: 32,
   },
@@ -170,7 +176,7 @@ const styles = StyleSheet.create({
     margin: 4,
     borderRadius: 12,
     overflow: "hidden",
-    backgroundColor: "#EFE6D8",
+    backgroundColor: colors.border,
   },
   cardImage: {
     width: "100%",
@@ -183,7 +189,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#2C2A26",
+    backgroundColor: colors.surfaceDark,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -192,7 +198,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   addButtonText: {
-    color: "#FDF6EC",
+    color: colors.background,
     fontSize: 28,
     lineHeight: 30,
   },
@@ -221,14 +227,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#3A3A3A",
   },
   cancelButtonText: {
-    color: "#FDF6EC",
+    color: colors.background,
     fontWeight: "600",
   },
   uploadButton: {
-    backgroundColor: "#D9A441",
+    backgroundColor: colors.accent,
   },
   uploadButtonText: {
-    color: "#2C2A26",
+    color: colors.inkPrimary,
     fontWeight: "600",
   },
 });

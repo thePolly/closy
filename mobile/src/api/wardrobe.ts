@@ -1,17 +1,51 @@
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+export type AnalysisStatus = "pending" | "completed" | "failed";
+
 export interface ClothingItem {
   id: string;
   image_url: string;
-  clothing_type: string;
-  color: string;
+  clothing_type: string | null;
+  fit: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  pattern: string | null;
+  season: string | null;
+  style: string | null;
+  material: string | null;
+  suitable_occasions: string | null;
+  confidence_score: number | null;
+  analysis_status: AnalysisStatus;
   created_at: string;
+}
+
+async function parseErrorMessage(response: Response): Promise<string> {
+  const body = await response.json().catch(() => ({ message: response.statusText }));
+  return body.message ?? `Request failed (${response.status})`;
 }
 
 export async function fetchWardrobe(): Promise<ClothingItem[]> {
   const response = await fetch(`${API_URL}/wardrobe`);
   if (!response.ok) {
     throw new Error(`Failed to load wardrobe (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchClothingItem(id: string): Promise<ClothingItem> {
+  const response = await fetch(`${API_URL}/wardrobe/${id}`);
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+  return response.json();
+}
+
+export async function retryAnalysis(id: string): Promise<ClothingItem> {
+  const response = await fetch(`${API_URL}/wardrobe/${id}/retry-analysis`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
   }
   return response.json();
 }
@@ -36,8 +70,7 @@ export async function uploadClothingItem(imageUri: string): Promise<ClothingItem
   });
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(body.message ?? `Upload failed (${response.status})`);
+    throw new Error(await parseErrorMessage(response));
   }
 
   return response.json();
