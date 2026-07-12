@@ -58,16 +58,16 @@
 
 ## Wardrobe — Clothing Details Screen
 
-- [ ] Tapping an item in the Wardrobe grid opens a details screen for that item.
-- [ ] Details screen shows: image, clothing type, fit, primary/secondary color, pattern, season, style, material, suitable occasions, and confidence score.
-- [ ] Fields with no detected value are shown as "Not detected" instead of blank or broken.
-- [ ] If `analysis_status` is `failed`, show a **Retry analysis** button that calls the retry endpoint and updates the screen on success.
+- [x] Tapping an item in the Wardrobe grid opens a details screen for that item.
+- [x] Details screen shows: image, clothing type, fit, primary/secondary color, pattern, season, style, material, suitable occasions, and confidence score.
+- [x] Fields with no detected value are shown as "Not detected" instead of blank or broken.
+- [x] If `analysis_status` is `failed`, show a **Retry analysis** button that calls the retry endpoint and updates the screen on success.
 
 ---
 
 ## Quality
 
-- [ ] Show a loading indicator while the Clothing Details screen is fetching its data.
-- [ ] Show a loading/disabled state on the Retry analysis button while a retry is in progress.
-- [ ] Show a clear error message if the Clothing Details screen fails to load.
-- [ ] Show a clear error message if a retry attempt fails, without losing the item.
+- [x] Show a loading indicator while the Clothing Details screen is fetching its data.
+- [x] Show a loading/disabled state on the Retry analysis button while a retry is in progress.
+- [x] Show a clear error message if the Clothing Details screen fails to load.
+- [x] Show a clear error message if a retry attempt fails, without losing the item.
