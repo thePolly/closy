@@ -71,3 +71,34 @@
 - [x] Show a loading/disabled state on the Retry analysis button while a retry is in progress.
 - [x] Show a clear error message if the Clothing Details screen fails to load.
 - [x] Show a clear error message if a retry attempt fails, without losing the item.
+
+---
+
+# MVP-2
+
+## Settings & Profile
+
+- [ ] Add a name input to the Settings screen.
+- [ ] Persist the name on the device (local storage) across app restarts.
+- [ ] Home greeting shows the name when set and falls back to the generic greeting when empty.
+- [ ] Allow editing or clearing the name.
+
+---
+
+## AI Item Naming
+
+- [ ] Extend the clothing analysis (same Gemini call) to also return a short descriptive name.
+- [ ] Add a `name` column to `clothing_item`.
+- [ ] On save, number duplicate names ("White T-Shirt", then "White T-Shirt 2").
+- [ ] Show the item name on the wardrobe grid cards and the details screen.
+- [ ] Let the user edit an item's name on the details screen (backend endpoint + UI).
+- [ ] Generate the name on retry for previously-failed items.
+
+---
+
+## Wardrobe Filter & Sort
+
+- [ ] Filter the grid by clothing type, season, style, and color.
+- [ ] Sort by newest (default) and by name (A–Z).
+- [ ] Filtering and sorting operate on already-loaded data (no new API calls).
+- [ ] Allow clearing/resetting the active filters.
