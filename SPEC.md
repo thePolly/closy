@@ -1,143 +1,101 @@
-# Closy MVP-1
+# Closy MVP-2
 
-**Version:** 0.2
+**Version:** 0.3
 
-**Status:** In Development
+**Status:** Ready for Development
 
 ---
 
 # Goal
 
-Transform the wardrobe into an intelligent collection by automatically analyzing uploaded clothing items.
+Turn the wardrobe from a labeled collection into an organized, personal space.
 
-The AI should understand each clothing item and store structured metadata that will enable future features such as outfit recommendations, wardrobe insights, filtering, and personalized styling.
+Every item gets a clear name, users can find items by filtering and sorting, and the app is personalized with the user's name — all without adding Gemini API cost beyond the existing one-call-per-upload analysis.
 
 ---
 
-# Feature 1 — Home Screen
+# Feature 1 — Settings & Profile
 
 ## Description
 
-Introduce the Home screen to establish the future user experience.
-
-For MVP-1, all recommendations are hardcoded and do not depend on user data.
+The Settings screen lets the user set their name. The name personalizes the Home greeting and is stored locally on the device.
 
 ---
 
 ## Requirements
 
-The Home screen displays:
+- The Settings screen has a name input.
+- The name persists on the device across app restarts (local storage).
+- The Home greeting shows the name when set (e.g. "Good morning, Polina!") and falls back to the generic greeting when empty (e.g. "Good morning!").
+- The user can edit or clear the name.
 
-- a personalized greeting
-- a hardcoded outfit recommendation
-- a placeholder recommendation card
+---
+
+## Out of Scope
+
+- Authentication, user accounts, and syncing the name across devices.
 
 ---
 
 ## Acceptance Criteria
 
-- The Home screen is accessible from the bottom navigation.
-- All UI elements render correctly.
-- The layout is responsive on supported devices.
+- Entering a name and reopening the app shows the same name.
+- The Home greeting reflects the current name.
+- Clearing the name reverts to the generic greeting.
 
 ---
 
-# Feature 2 — AI Clothing Analysis
+# Feature 2 — AI Item Naming
 
 ## Description
 
-After a clothing item is uploaded, the backend sends the image to Gemini for analysis, synchronously as part of the upload request.
+Each analyzed clothing item gets a short, descriptive AI-generated name. The name comes from the **existing** clothing-analysis Gemini call — no additional API request is made.
 
-Gemini returns structured metadata describing the clothing item.
-
-The metadata is stored together with the uploaded image.
+Users can rename any item. Identical items are disambiguated with numbers.
 
 ---
 
 ## Requirements
 
-For every uploaded clothing item, Gemini should identify:
-
-- clothing type
-- fit
-  - Slim Fit
-  - Regular Fit
-  - Relaxed Fit
-  - Oversized
-- primary color
-- secondary color (if applicable)
-- pattern
-  - Solid
-  - Striped
-  - Plaid
-  - Polka Dot
-  - Floral
-  - Graphic
-- season
-- style
-  - Casual
-  - Business
-  - Smart Casual
-  - Formal
-  - Evening
-  - Sport
-- material (when confidently identifiable)
-- suitable occasions (if recognizable)
-- one overall confidence score for the detection (not per attribute)
-
----
-
-## Analysis Failure Handling
-
-- Analysis runs synchronously during the upload request — the client waits for the result.
-- If analysis fails (Gemini error, timeout, malformed response), the clothing item is still saved with its image; `analysis_status` is set to `failed` and metadata fields are left empty.
-- The Wardrobe Details screen (Feature 3) shows a **Retry analysis** action for any item with `analysis_status = failed`, which re-runs the same synchronous analysis on demand.
-- No background jobs or automatic retry scheduling in MVP-1 — retries are always user-triggered.
+- The clothing analysis returns a short descriptive name (e.g. "White T-Shirt", "Oversized Blue Jeans") as part of the same Gemini call already made on upload.
+- If a generated name matches an existing item's name, the new item's name is numbered: the first keeps the plain name ("White T-Shirt"), the next becomes "White T-Shirt 2", and so on.
+- The name is shown on the wardrobe grid cards and on the details screen.
+- The user can edit an item's name on the details screen; the edited name persists.
+- A failed item has no name until analysis succeeds; the name is generated when analysis is retried.
 
 ---
 
 ## Acceptance Criteria
 
-- Uploaded images are sent to Gemini as part of the upload request.
-- On success, structured metadata and a confidence score are stored in PostgreSQL, and `analysis_status` is set to `completed`.
-- On failure, the image is still stored, `analysis_status` is set to `failed`, and no partial/incorrect metadata is saved.
-- Metadata can be retrieved through the backend API.
-- A failed item can be retried through a manual action; on success it updates to `completed` with the new metadata.
+- A new upload receives a sensible name automatically.
+- Two identical items receive distinct, numbered names.
+- Editing a name persists and is reflected on both the grid and the details screen.
+- No Gemini calls are made beyond the existing one-per-upload analysis.
 
 ---
 
-# Feature 3 — Wardrobe Details
+# Feature 3 — Wardrobe Filtering & Sorting
 
 ## Description
 
-Users can view AI-generated information for each clothing item.
+Users can filter and sort the wardrobe grid using the metadata already extracted in MVP-1. No new API calls are involved.
 
 ---
 
 ## Requirements
 
-Selecting a clothing item opens a details screen displaying:
-
-- clothing image
-- clothing type
-- fit
-- primary and secondary color
-- pattern
-- season
-- style
-- material
-- suitable occasions
-- overall confidence score
-- a **Retry analysis** action, shown only when `analysis_status` is `failed`
+- Filter the grid by clothing type, season, style, and color.
+- Sort by newest (default) and by name (A–Z).
+- Filtering and sorting operate on already-loaded data.
+- The user can clear/reset the active filters.
 
 ---
 
 ## Acceptance Criteria
 
-- Users can open any clothing item.
-- All available metadata is displayed correctly.
-- Missing metadata is handled gracefully (fields with no value are omitted or shown as "Not detected", not left blank/broken).
-- Items with failed analysis show the retry action; using it re-runs analysis and updates the screen on success.
+- Selecting a filter narrows the grid to matching items.
+- Changing the sort reorders the grid.
+- Clearing the filters restores the full grid.
 
 ---
 
@@ -145,35 +103,24 @@ Selecting a clothing item opens a details screen displaying:
 
 ## Clothing Item
 
-Extends the MVP-0 `clothing_item` table (`id`, `image_url`, `created_at`) with:
+Extends the MVP-1 `clothing_item` table with:
 
-- `clothing_type`
-- `fit`
-- `primary_color`
-- `secondary_color` (nullable)
-- `pattern`
-- `season`
-- `style`
-- `material` (nullable)
-- `suitable_occasions` (nullable)
-- `confidence_score` (single overall value)
-- `analysis_status` — `pending` | `completed` | `failed`
+- `name` — nullable; set by AI on successful analysis, editable by the user.
 
 ---
 
 # Out of Scope
 
-The following features are **NOT** included in MVP-1:
+The following are **NOT** included in MVP-2:
 
+- Authentication, user accounts, cross-device sync
+- Prompt engineering / companion personalities
+- Keep-or-donate AI evaluation
+- Weather integration and weather-aware recommendations
 - AI outfit recommendations
-- Weather integration
-- Google Calendar integration
-- Push notifications
 - AI-generated outfit images
 - Shopping assistant
-- Multiple AI companions
-- Automatic daily outfit generation
-- Background/async analysis processing or scheduled auto-retries
+- Google Calendar integration
 
 ---
 
@@ -196,7 +143,8 @@ The following features are **NOT** included in MVP-1:
 
 ## Storage
 
-- Supabase Storage
+- Supabase Storage (clothing images)
+- Device local storage (user's name)
 
 ## AI
 
@@ -206,9 +154,9 @@ The following features are **NOT** included in MVP-1:
 
 # Definition of Success
 
-MVP-1 is considered successful when:
+MVP-2 is successful when:
 
-1. Every newly uploaded clothing item is automatically analyzed by Gemini and stored with structured metadata.
-2. Users can view that metadata for any item on the Wardrobe Details screen.
-3. A failed analysis never blocks the user — the image and item remain usable, and analysis can be retried on demand.
-4. The Home screen exists as the foundation for future personalized recommendations.
+1. Users can personalize the app with their name, reflected on the Home screen.
+2. Every item has a clear name — auto-generated, editable, with duplicates disambiguated.
+3. Users can filter and sort their wardrobe to find items quickly.
+4. None of the above adds Gemini API cost beyond the existing one-call-per-upload analysis.
