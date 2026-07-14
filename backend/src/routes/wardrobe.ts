@@ -6,7 +6,7 @@ import multer from "multer";
 import { analyzeClothing, type ClothingAnalysis } from "../ai/analyzeClothing";
 import { pool } from "../db/pool";
 
-const UPLOADS_DIR = path.join(__dirname, "../../uploads");
+const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "../../uploads");
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -40,7 +40,7 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
   ".heic": "image/heic",
 };
 
-function mimeTypeForFile(filename: string): string {
+export function mimeTypeForFile(filename: string): string {
   const extension = path.extname(filename).toLowerCase();
   return MIME_TYPES_BY_EXTENSION[extension] ?? "image/jpeg";
 }
