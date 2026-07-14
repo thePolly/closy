@@ -27,7 +27,7 @@ const upload = multer({
 });
 
 const SELECT_COLUMNS = `
-  id, image_url, clothing_type, fit, primary_color, secondary_color, pattern,
+  id, image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
   season, style, material, suitable_occasions, confidence_score, analysis_status,
   created_at
 `;
@@ -56,6 +56,26 @@ async function runAnalysis(
     console.error("Clothing analysis failed", error);
     return { status: "failed" };
   }
+}
+
+// Returns baseName if it's free, otherwise the next available "baseName N".
+// Matching is case-insensitive. Wardrobes are small, so all names are fetched
+// and compared in memory rather than with a LIKE query (avoids escaping issues).
+export async function uniqueName(baseName: string): Promise<string> {
+  const result = await pool.query("SELECT name FROM clothing_item WHERE name IS NOT NULL");
+  const taken = new Set<string>(
+    result.rows.map((row: { name: string }) => row.name.toLowerCase())
+  );
+
+  if (!taken.has(baseName.toLowerCase())) {
+    return baseName;
+  }
+
+  let suffix = 2;
+  while (taken.has(`${baseName} ${suffix}`.toLowerCase())) {
+    suffix += 1;
+  }
+  return `${baseName} ${suffix}`;
 }
 
 export const wardrobeRouter = Router();
@@ -94,6 +114,7 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
   const fields =
     outcome.status === "completed"
       ? [
+          await uniqueName(outcome.analysis.name),
           outcome.analysis.clothingType,
           outcome.analysis.fit,
           outcome.analysis.primaryColor,
@@ -106,14 +127,14 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
           outcome.analysis.confidenceScore,
           "completed",
         ]
-      : [null, null, null, null, null, null, null, null, null, null, "failed"];
+      : [null, null, null, null, null, null, null, null, null, null, null, "failed"];
 
   const result = await pool.query(
     `INSERT INTO clothing_item (
-       image_url, clothing_type, fit, primary_color, secondary_color, pattern,
+       image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
        season, style, material, suitable_occasions, confidence_score, analysis_status
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING ${SELECT_COLUMNS}`,
     [imageUrl, ...fields]
   );

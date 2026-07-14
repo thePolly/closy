@@ -1,6 +1,7 @@
 const GEMINI_MODEL = "gemini-flash-latest";
 
 export interface ClothingAnalysis {
+  name: string;
   clothingType: string;
   fit: string;
   primaryColor: string;
@@ -16,6 +17,7 @@ export interface ClothingAnalysis {
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
+    name: { type: "STRING" },
     clothingType: { type: "STRING" },
     fit: {
       type: "STRING",
@@ -36,10 +38,11 @@ const RESPONSE_SCHEMA = {
     suitableOccasions: { type: "STRING" },
     confidenceScore: { type: "NUMBER" },
   },
-  required: ["clothingType", "fit", "primaryColor", "pattern", "season", "style", "confidenceScore"],
+  required: ["name", "clothingType", "fit", "primaryColor", "pattern", "season", "style", "confidenceScore"],
 };
 
 const PROMPT = `You are analyzing a photo of a single clothing item for a wardrobe app. Identify:
+- a short descriptive name for the item, e.g. "White T-Shirt" or "Oversized Blue Jeans"
 - clothing type (e.g. "T-Shirt", "Jeans", "Blazer")
 - fit
 - primary color, and a secondary color only if clearly present
@@ -101,6 +104,7 @@ export async function analyzeClothing(
   const parsed = JSON.parse(rawJson) as Partial<ClothingAnalysis>;
 
   if (
+    !parsed.name ||
     !parsed.clothingType ||
     !parsed.fit ||
     !parsed.primaryColor ||
@@ -113,6 +117,7 @@ export async function analyzeClothing(
   }
 
   return {
+    name: parsed.name,
     clothingType: parsed.clothingType,
     fit: parsed.fit,
     primaryColor: parsed.primaryColor,
