@@ -11,7 +11,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { type ClothingItem, fetchWardrobe, uploadClothingItem } from "../../../src/api/wardrobe";
+import {
+  type ClothingItem,
+  displayName,
+  fetchWardrobe,
+  uploadClothingItem,
+} from "../../../src/api/wardrobe";
 import { Screen } from "../../../src/components/Screen";
 import { colors } from "../../../src/theme/colors";
 
@@ -137,7 +142,12 @@ export default function WardrobeScreen() {
               style={styles.card}
               onPress={() => router.push(`/wardrobe/${item.id}`)}
             >
-              <Image source={{ uri: item.image_url }} style={styles.cardImage} />
+              <View style={styles.cardImageWrapper}>
+                <Image source={{ uri: item.image_url }} style={styles.cardImage} />
+              </View>
+              <Text style={styles.cardName} numberOfLines={1}>
+                {displayName(item)}
+              </Text>
             </Pressable>
           )}
         />
@@ -172,8 +182,11 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_SIZE,
-    height: CARD_SIZE,
     margin: 4,
+  },
+  cardImageWrapper: {
+    width: CARD_SIZE,
+    height: CARD_SIZE,
     borderRadius: 12,
     overflow: "hidden",
     backgroundColor: colors.border,
@@ -181,6 +194,11 @@ const styles = StyleSheet.create({
   cardImage: {
     width: "100%",
     height: "100%",
+  },
+  cardName: {
+    marginTop: 6,
+    fontSize: 12,
+    color: colors.inkPrimary,
   },
   addButton: {
     position: "absolute",

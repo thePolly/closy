@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import {
   type ClothingItem,
+  displayName,
   fetchClothingItem,
   retryAnalysis,
 } from "../../../src/api/wardrobe";
@@ -111,6 +112,8 @@ export default function ClothingDetailsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image source={{ uri: item.image_url }} style={styles.image} />
 
+        <Text style={styles.name}>{displayName(item)}</Text>
+
         <Card style={styles.card}>
           {buildRows(item).map((row) => (
             <View key={row.label} style={styles.row}>
@@ -165,8 +168,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: colors.border,
   },
-  card: {
+  name: {
     marginTop: 20,
+    fontSize: 22,
+    fontWeight: "600",
+    color: colors.inkPrimary,
+  },
+  card: {
+    marginTop: 12,
   },
   row: {
     flexDirection: "row",
