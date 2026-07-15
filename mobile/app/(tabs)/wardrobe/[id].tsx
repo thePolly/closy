@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -136,6 +136,7 @@ export default function ClothingDetailsScreen() {
 
   return (
     <Screen style={styles.container} edges={[]}>
+      <Stack.Screen options={{ title: displayName(item) }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image source={{ uri: item.image_url }} style={styles.image} />
 
@@ -176,9 +177,8 @@ export default function ClothingDetailsScreen() {
           </View>
         ) : (
           <View style={styles.nameRow}>
-            <Text style={styles.name}>{displayName(item)}</Text>
             <Pressable onPress={startEditingName} hitSlop={8}>
-              <Text style={styles.nameActionText}>Edit</Text>
+              <Text style={styles.nameActionText}>Edit name</Text>
             </Pressable>
           </View>
         )}
@@ -239,19 +239,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   nameRow: {
-    marginTop: 20,
+    marginTop: 16,
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  name: {
-    flex: 1,
-    fontSize: 22,
-    fontWeight: "600",
-    color: colors.inkPrimary,
+    justifyContent: "flex-end",
   },
   nameEditor: {
-    marginTop: 20,
+    marginTop: 16,
   },
   nameInput: {
     fontSize: 22,
