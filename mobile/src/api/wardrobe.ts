@@ -5,6 +5,7 @@ export type AnalysisStatus = "pending" | "completed" | "failed";
 export interface ClothingItem {
   id: string;
   image_url: string;
+  name: string | null;
   clothing_type: string | null;
   fit: string | null;
   primary_color: string | null;
@@ -17,6 +18,12 @@ export interface ClothingItem {
   confidence_score: number | null;
   analysis_status: AnalysisStatus;
   created_at: string;
+}
+
+// The item's display name: the AI-generated name, falling back to the
+// detected clothing type, then to a generic label for un-analyzed items.
+export function displayName(item: ClothingItem): string {
+  return item.name ?? item.clothing_type ?? "Unnamed item";
 }
 
 async function parseErrorMessage(response: Response): Promise<string> {
