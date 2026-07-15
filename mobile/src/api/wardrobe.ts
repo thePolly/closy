@@ -47,6 +47,18 @@ export async function fetchClothingItem(id: string): Promise<ClothingItem> {
   return response.json();
 }
 
+export async function renameItem(id: string, name: string): Promise<ClothingItem> {
+  const response = await fetch(`${API_URL}/wardrobe/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+  return response.json();
+}
+
 export async function retryAnalysis(id: string): Promise<ClothingItem> {
   const response = await fetch(`${API_URL}/wardrobe/${id}/retry-analysis`, {
     method: "POST",

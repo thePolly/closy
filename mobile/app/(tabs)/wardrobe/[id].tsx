@@ -7,12 +7,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import {
   type ClothingItem,
   displayName,
   fetchClothingItem,
+  renameItem,
   retryAnalysis,
 } from "../../../src/api/wardrobe";
 import { Card } from "../../../src/components/Card";
@@ -57,6 +59,10 @@ export default function ClothingDetailsScreen() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const loadItem = useCallback(async () => {
     setLoading(true);
@@ -86,6 +92,27 @@ export default function ClothingDetailsScreen() {
     }
   };
 
+  const startEditingName = () => {
+    setNameDraft(item?.name ?? "");
+    setNameError(null);
+    setEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed) return;
+    setSavingName(true);
+    setNameError(null);
+    try {
+      setItem(await renameItem(id, trimmed));
+      setEditingName(false);
+    } catch (error) {
+      setNameError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSavingName(false);
+    }
+  };
+
   if (loading) {
     return (
       <Screen style={styles.centered} edges={[]}>
@@ -112,7 +139,50 @@ export default function ClothingDetailsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image source={{ uri: item.image_url }} style={styles.image} />
 
-        <Text style={styles.name}>{displayName(item)}</Text>
+        {editingName ? (
+          <View style={styles.nameEditor}>
+            <TextInput
+              style={styles.nameInput}
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              placeholder="Item name"
+              placeholderTextColor={colors.inkMuted}
+              autoFocus
+              maxLength={100}
+            />
+            <View style={styles.nameEditActions}>
+              <Pressable onPress={() => setEditingName(false)} disabled={savingName}>
+                <Text style={styles.nameActionText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleSaveName}
+                disabled={savingName || nameDraft.trim().length === 0}
+              >
+                {savingName ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text
+                    style={[
+                      styles.nameActionText,
+                      styles.nameSaveText,
+                      nameDraft.trim().length === 0 && styles.nameActionDisabled,
+                    ]}
+                  >
+                    Save
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>{displayName(item)}</Text>
+            <Pressable onPress={startEditingName} hitSlop={8}>
+              <Text style={styles.nameActionText}>Edit</Text>
+            </Pressable>
+          </View>
+        )}
+        {nameError && <Text style={styles.errorText}>{nameError}</Text>}
 
         <Card style={styles.card}>
           {buildRows(item).map((row) => (
@@ -168,11 +238,45 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: colors.border,
   },
-  name: {
+  nameRow: {
     marginTop: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  name: {
+    flex: 1,
     fontSize: 22,
     fontWeight: "600",
     color: colors.inkPrimary,
+  },
+  nameEditor: {
+    marginTop: 20,
+  },
+  nameInput: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: colors.inkPrimary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.accent,
+    paddingVertical: 4,
+  },
+  nameEditActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 20,
+    marginTop: 10,
+  },
+  nameActionText: {
+    fontSize: 15,
+    color: colors.inkMuted,
+    fontWeight: "600",
+  },
+  nameSaveText: {
+    color: colors.accent,
+  },
+  nameActionDisabled: {
+    opacity: 0.4,
   },
   card: {
     marginTop: 12,

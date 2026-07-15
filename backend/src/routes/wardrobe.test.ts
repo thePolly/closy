@@ -157,6 +157,35 @@ describe("POST /wardrobe/:id/retry-analysis", () => {
   });
 });
 
+describe("PATCH /wardrobe/:id", () => {
+  it("renames an item", async () => {
+    vi.mocked(pool.query).mockResolvedValue({
+      rows: [{ id: "1", name: "My Favourite Jeans" }],
+    } as never);
+
+    const res = await request(app)
+      .patch("/wardrobe/1")
+      .send({ name: "  My Favourite Jeans  " });
+
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe("My Favourite Jeans");
+    const updateParams = vi.mocked(pool.query).mock.calls[0][1] as unknown[];
+    expect(updateParams).toContain("My Favourite Jeans"); // trimmed
+  });
+
+  it("rejects an empty name", async () => {
+    const res = await request(app).patch("/wardrobe/1").send({ name: "   " });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/name is required/i);
+  });
+
+  it("returns 404 for an unknown item", async () => {
+    vi.mocked(pool.query).mockResolvedValue({ rows: [] } as never);
+    const res = await request(app).patch("/wardrobe/nope").send({ name: "New name" });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe("uniqueName", () => {
   it("returns the base name when it is free", async () => {
     vi.mocked(pool.query).mockResolvedValue({ rows: [] } as never);
