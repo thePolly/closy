@@ -91,7 +91,7 @@
 - [x] Add a `name` column to `clothing_item`.
 - [x] On save, number duplicate names ("White T-Shirt", then "White T-Shirt 2").
 - [x] Show the item name on the wardrobe grid cards and the details screen.
-- [ ] Let the user edit an item's name on the details screen (backend endpoint + UI).
+- [x] Let the user edit an item's name on the details screen (backend endpoint + UI).
 - [ ] Generate the name on retry for previously-failed items.
 
 ---

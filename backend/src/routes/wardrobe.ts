@@ -101,6 +101,31 @@ wardrobeRouter.get("/:id", async (req, res) => {
   res.json(result.rows[0]);
 });
 
+wardrobeRouter.patch("/:id", async (req, res) => {
+  const { name } = req.body as { name?: unknown };
+
+  if (typeof name !== "string" || name.trim().length === 0) {
+    res.status(400).json({ message: "Name is required" });
+    return;
+  }
+  if (name.trim().length > 100) {
+    res.status(400).json({ message: "Name is too long (max 100 characters)" });
+    return;
+  }
+
+  const result = await pool.query(
+    `UPDATE clothing_item SET name = $1 WHERE id = $2 RETURNING ${SELECT_COLUMNS}`,
+    [name.trim(), req.params.id]
+  );
+
+  if (result.rows.length === 0) {
+    res.status(404).json({ message: "Clothing item not found" });
+    return;
+  }
+
+  res.json(result.rows[0]);
+});
+
 wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
   if (!req.file) {
     res.status(400).json({ message: "Image file is required" });
