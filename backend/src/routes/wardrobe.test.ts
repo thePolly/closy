@@ -8,12 +8,13 @@ vi.mock("../ai/analyzeClothing", () => ({ analyzeClothing: vi.fn() }));
 import { analyzeClothing } from "../ai/analyzeClothing";
 import { createApp } from "../app";
 import { pool } from "../db/pool";
-import { mimeTypeForFile } from "./wardrobe";
+import { mimeTypeForFile, uniqueName } from "./wardrobe";
 
 const app = createApp();
 const UPLOADS_DIR = process.env.UPLOADS_DIR as string;
 
 const sampleAnalysis = {
+  name: "White T-Shirt",
   clothingType: "T-Shirt",
   fit: "Regular Fit",
   primaryColor: "White",
@@ -70,9 +71,11 @@ describe("POST /wardrobe", () => {
 
   it("saves metadata and marks completed when analysis succeeds", async () => {
     vi.mocked(analyzeClothing).mockResolvedValue(sampleAnalysis);
-    vi.mocked(pool.query).mockResolvedValue({
-      rows: [{ id: "1", analysis_status: "completed" }],
-    } as never);
+    vi.mocked(pool.query)
+      .mockResolvedValueOnce({ rows: [] } as never) // uniqueName: no existing names
+      .mockResolvedValueOnce({
+        rows: [{ id: "1", name: "White T-Shirt", analysis_status: "completed" }],
+      } as never); // INSERT
 
     const res = await request(app)
       .post("/wardrobe")
@@ -85,9 +88,29 @@ describe("POST /wardrobe", () => {
     expect(res.body.analysis_status).toBe("completed");
     expect(analyzeClothing).toHaveBeenCalledOnce();
 
-    const insertParams = vi.mocked(pool.query).mock.calls[0][1] as unknown[];
+    const insertParams = vi.mocked(pool.query).mock.calls[1][1] as unknown[];
     expect(insertParams).toContain("completed");
-    expect(insertParams).toContain("White");
+    expect(insertParams).toContain("White T-Shirt");
+  });
+
+  it("numbers a duplicate name on save", async () => {
+    vi.mocked(analyzeClothing).mockResolvedValue(sampleAnalysis);
+    vi.mocked(pool.query)
+      .mockResolvedValueOnce({ rows: [{ name: "White T-Shirt" }] } as never) // uniqueName: one exists
+      .mockResolvedValueOnce({
+        rows: [{ id: "2", name: "White T-Shirt 2", analysis_status: "completed" }],
+      } as never); // INSERT
+
+    const res = await request(app)
+      .post("/wardrobe")
+      .attach("image", Buffer.from("fake-image-bytes"), {
+        filename: "shirt.jpg",
+        contentType: "image/jpeg",
+      });
+
+    expect(res.status).toBe(201);
+    const insertParams = vi.mocked(pool.query).mock.calls[1][1] as unknown[];
+    expect(insertParams).toContain("White T-Shirt 2");
   });
 
   it("still saves the item as failed when analysis throws (no lost upload)", async () => {
@@ -131,5 +154,24 @@ describe("POST /wardrobe/:id/retry-analysis", () => {
     const res = await request(app).post("/wardrobe/does-not-exist/retry-analysis");
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/not found/i);
+  });
+});
+
+describe("uniqueName", () => {
+  it("returns the base name when it is free", async () => {
+    vi.mocked(pool.query).mockResolvedValue({ rows: [] } as never);
+    expect(await uniqueName("Jeans")).toBe("Jeans");
+  });
+
+  it("appends the next free number when the base name is taken", async () => {
+    vi.mocked(pool.query).mockResolvedValue({
+      rows: [{ name: "Jeans" }, { name: "Jeans 2" }],
+    } as never);
+    expect(await uniqueName("Jeans")).toBe("Jeans 3");
+  });
+
+  it("matches existing names case-insensitively", async () => {
+    vi.mocked(pool.query).mockResolvedValue({ rows: [{ name: "jeans" }] } as never);
+    expect(await uniqueName("Jeans")).toBe("Jeans 2");
   });
 });

@@ -19,6 +19,7 @@ export async function ensureSchema(): Promise<void> {
     ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS suitable_occasions TEXT;
     ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS confidence_score REAL;
     ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS analysis_status TEXT NOT NULL DEFAULT 'pending';
+    ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS name TEXT;
 
     ALTER TABLE clothing_item ALTER COLUMN clothing_type DROP NOT NULL;
     ALTER TABLE clothing_item DROP COLUMN IF EXISTS color;
