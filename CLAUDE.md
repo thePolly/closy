@@ -24,6 +24,22 @@ Before implementing a feature:
 
 ---
 
+## New Building Blocks
+
+Before implementing, list every new building block the change introduces:
+
+- new files, components, functions, or hooks
+- new database tables or columns
+- new API endpoints
+
+For each one, give its proposed name and a one-line description of what it does.
+
+If a name has reasonable alternatives, present the options and ask before implementing.
+
+Never introduce a new building block silently.
+
+---
+
 ## Coding Principles
 
 Prefer simple, modular and maintainable solutions.
