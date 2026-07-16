@@ -2,10 +2,12 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Card } from "../../src/components/Card";
@@ -71,44 +73,48 @@ export default function SettingsScreen() {
 
   return (
     <Screen style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Settings</Text>
 
-      <Card style={styles.card}>
-        <Text style={styles.label}>Your name</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={(value) => {
-            setName(value);
-            setJustSaved(false);
-          }}
-          placeholder="What should Closy call you?"
-          placeholderTextColor={colors.inkMuted}
-          maxLength={50}
-        />
-        <Text style={styles.hint}>Used to greet you on the Home screen.</Text>
+          <Card style={styles.card}>
+            <Text style={styles.label}>Your name</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={(value) => {
+                setName(value);
+                setJustSaved(false);
+              }}
+              placeholder="What should Closy call you?"
+              placeholderTextColor={colors.inkMuted}
+              maxLength={50}
+            />
+            <Text style={styles.hint}>Used to greet you on the Home screen.</Text>
 
-        <View style={styles.actions}>
-          {storedName && (
-            <Pressable onPress={handleClear} disabled={saving} hitSlop={8}>
-              <Text style={styles.clearText}>Clear</Text>
-            </Pressable>
-          )}
-          <Pressable
-            style={[styles.saveButton, (!name.trim() || saving) && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={!name.trim() || saving}
-          >
-            {saving ? (
-              <ActivityIndicator color={colors.background} />
-            ) : (
-              <Text style={styles.saveButtonText}>Save</Text>
-            )}
-          </Pressable>
+            <View style={styles.actions}>
+              {storedName && (
+                <Pressable onPress={handleClear} disabled={saving} hitSlop={8}>
+                  <Text style={styles.clearText}>Clear</Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={[styles.saveButton, (!name.trim() || saving) && styles.saveButtonDisabled]}
+                onPress={handleSave}
+                disabled={!name.trim() || saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color={colors.background} />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save</Text>
+                )}
+              </Pressable>
+            </View>
+
+            {justSaved && <Text style={styles.savedText}>Saved</Text>}
+          </Card>
         </View>
-
-        {justSaved && <Text style={styles.savedText}>Saved</Text>}
-      </Card>
+      </TouchableWithoutFeedback>
     </Screen>
   );
 }
@@ -119,6 +125,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 16,
+  },
+  // Fills the screen so a tap on empty space (not just on the card)
+  // still dismisses the keyboard.
+  content: {
+    flex: 1,
   },
   centered: {
     flex: 1,
