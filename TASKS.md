@@ -78,10 +78,10 @@
 
 ## Settings & Profile
 
-- [ ] Add a name input to the Settings screen.
-- [ ] Persist the name on the device (local storage) across app restarts.
-- [ ] Home greeting shows the name when set and falls back to the generic greeting when empty.
-- [ ] Allow editing or clearing the name.
+- [x] Add a name input to the Settings screen.
+- [x] Persist the name on the device (local storage) across app restarts.
+- [x] Home greeting shows the name when set and falls back to the generic greeting when empty.
+- [x] Allow editing or clearing the name.
 
 ---
 

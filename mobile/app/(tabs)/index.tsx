@@ -1,20 +1,37 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Card } from "../../src/components/Card";
 import { Screen } from "../../src/components/Screen";
+import { getUserName } from "../../src/storage/userName";
 import { colors } from "../../src/theme/colors";
 
-function getGreeting(): string {
+function getGreeting(name: string | null): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning!";
-  if (hour < 18) return "Good afternoon!";
-  return "Good evening!";
+  const timeOfDay =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return name ? `${timeOfDay}, ${name}!` : `${timeOfDay}!`;
 }
 
 export default function HomeScreen() {
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      getUserName().then((value) => {
+        if (active) setUserName(value);
+      });
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
   return (
     <Screen style={styles.container}>
-      <Text style={styles.greeting}>{getGreeting()}</Text>
+      <Text style={styles.greeting}>{getGreeting(userName)}</Text>
       <Text style={styles.subtitle}>Here's your look for today</Text>
 
       <Card style={styles.card}>
