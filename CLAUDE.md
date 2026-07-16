@@ -94,6 +94,6 @@ Never push directly to `main`. For every task:
 
 - create a feature branch off `main` (e.g. `feat/wardrobe-upload`, `chore/tasks-md-update`)
 - commit work to that branch, push the branch
-- open a pull request describing what changed and why, referencing the relevant TASKS.md item(s)
+- open a pull request describing only what changed and why in a concise way, referencing the relevant TASKS.md item(s)
 - wait for the user to review and merge on GitHub — do not merge automatically, even after approval in chat
 - after it's merged, pull the latest `main` locally before starting the next task
