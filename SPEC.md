@@ -1,4 +1,4 @@
-# Closy MVP-2
+# Closy v0.3.0
 
 **Version:** 0.3
 
@@ -154,7 +154,7 @@ The following are **NOT** included in MVP-2:
 
 # Definition of Success
 
-MVP-2 is successful when:
+v0.3.0 is successful when:
 
 1. Users can personalize the app with their name, reflected on the Home screen.
 2. Every item has a clear name — auto-generated, editable, with duplicates disambiguated.
