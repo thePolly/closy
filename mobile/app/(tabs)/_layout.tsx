@@ -1,9 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          height: 56 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom,
+          paddingHorizontal: 12,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
