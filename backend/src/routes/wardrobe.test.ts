@@ -155,6 +155,41 @@ describe("POST /wardrobe/:id/retry-analysis", () => {
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/not found/i);
   });
+
+  it("generates a name when a retry succeeds", async () => {
+    fs.writeFileSync(`${UPLOADS_DIR}/retry-test.jpg`, "fake-image-bytes");
+    vi.mocked(analyzeClothing).mockResolvedValue(sampleAnalysis);
+    vi.mocked(pool.query)
+      .mockResolvedValueOnce({
+        rows: [{ image_url: "http://localhost:3000/uploads/retry-test.jpg" }],
+      } as never) // SELECT existing item
+      .mockResolvedValueOnce({ rows: [] } as never) // uniqueName: no existing names
+      .mockResolvedValueOnce({
+        rows: [{ id: "1", name: "White T-Shirt", analysis_status: "completed" }],
+      } as never); // UPDATE
+
+    const res = await request(app).post("/wardrobe/1/retry-analysis");
+
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe("White T-Shirt");
+    const updateParams = vi.mocked(pool.query).mock.calls[2][1] as unknown[];
+    expect(updateParams).toContain("White T-Shirt");
+  });
+
+  it("returns 502 and does not set a name when a retry fails again", async () => {
+    fs.writeFileSync(`${UPLOADS_DIR}/retry-test.jpg`, "fake-image-bytes");
+    vi.mocked(analyzeClothing).mockRejectedValue(new Error("gemini down"));
+    vi.mocked(pool.query)
+      .mockResolvedValueOnce({
+        rows: [{ image_url: "http://localhost:3000/uploads/retry-test.jpg" }],
+      } as never) // SELECT existing item
+      .mockResolvedValueOnce({ rows: [] } as never); // UPDATE analysis_status = 'failed'
+
+    const res = await request(app).post("/wardrobe/1/retry-analysis");
+
+    expect(res.status).toBe(502);
+    expect(pool.query).toHaveBeenCalledTimes(2); // no uniqueName / name UPDATE call
+  });
 });
 
 describe("PATCH /wardrobe/:id", () => {

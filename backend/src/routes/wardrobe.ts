@@ -193,12 +193,13 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
 
   const result = await pool.query(
     `UPDATE clothing_item SET
-       clothing_type = $1, fit = $2, primary_color = $3, secondary_color = $4,
-       pattern = $5, season = $6, style = $7, material = $8,
-       suitable_occasions = $9, confidence_score = $10, analysis_status = 'completed'
-     WHERE id = $11
+       name = $1, clothing_type = $2, fit = $3, primary_color = $4, secondary_color = $5,
+       pattern = $6, season = $7, style = $8, material = $9,
+       suitable_occasions = $10, confidence_score = $11, analysis_status = 'completed'
+     WHERE id = $12
      RETURNING ${SELECT_COLUMNS}`,
     [
+      await uniqueName(outcome.analysis.name),
       outcome.analysis.clothingType,
       outcome.analysis.fit,
       outcome.analysis.primaryColor,
