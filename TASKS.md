@@ -98,7 +98,7 @@
 
 ## Wardrobe Filter & Sort
 
-- [ ] Filter the grid by clothing type, season, style, and color.
-- [ ] Sort by newest (default) and by name (A–Z).
-- [ ] Filtering and sorting operate on already-loaded data (no new API calls).
-- [ ] Allow clearing/resetting the active filters.
+- [x] Filter the grid by clothing type, season, style, and color.
+- [x] Sort by newest (default) and by name (A–Z).
+- [x] Filtering and sorting operate on already-loaded data (no new API calls).
+- [x] Allow clearing/resetting the active filters.
