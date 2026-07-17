@@ -3,7 +3,6 @@ import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -19,7 +18,6 @@ export default function SettingsScreen() {
   const [name, setName] = useState("");
   const [storedName, setStoredName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
   useFocusEffect(
@@ -37,30 +35,23 @@ export default function SettingsScreen() {
     }, [])
   );
 
-  const handleSave = async () => {
+  // Dismisses the keyboard and persists the name in the same tap: saves a
+  // trimmed non-empty value, or clears the stored name if the field was
+  // emptied out. No-ops if nothing actually changed.
+  const handleDismissAndSave = async () => {
+    Keyboard.dismiss();
     const trimmed = name.trim();
-    if (!trimmed) return;
-    setSaving(true);
-    try {
+    if (trimmed === (storedName ?? "")) return;
+
+    if (trimmed) {
       await saveUserName(trimmed);
       setStoredName(trimmed);
       setName(trimmed);
-      setJustSaved(true);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleClear = async () => {
-    setSaving(true);
-    try {
+    } else {
       await clearUserName();
       setStoredName(null);
-      setName("");
-      setJustSaved(false);
-    } finally {
-      setSaving(false);
     }
+    setJustSaved(true);
   };
 
   if (loading) {
@@ -73,7 +64,7 @@ export default function SettingsScreen() {
 
   return (
     <Screen style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <TouchableWithoutFeedback onPress={handleDismissAndSave} accessible={false}>
         <View style={styles.content}>
           <Text style={styles.title}>Settings</Text>
 
@@ -89,27 +80,12 @@ export default function SettingsScreen() {
               placeholder="What should Closy call you?"
               placeholderTextColor={colors.inkMuted}
               maxLength={50}
+              returnKeyType="done"
+              onSubmitEditing={handleDismissAndSave}
             />
-            <Text style={styles.hint}>Used to greet you on the Home screen.</Text>
-
-            <View style={styles.actions}>
-              {storedName && (
-                <Pressable onPress={handleClear} disabled={saving} hitSlop={8}>
-                  <Text style={styles.clearText}>Clear</Text>
-                </Pressable>
-              )}
-              <Pressable
-                style={[styles.saveButton, (!name.trim() || saving) && styles.saveButtonDisabled]}
-                onPress={handleSave}
-                disabled={!name.trim() || saving}
-              >
-                {saving ? (
-                  <ActivityIndicator color={colors.background} />
-                ) : (
-                  <Text style={styles.saveButtonText}>Save</Text>
-                )}
-              </Pressable>
-            </View>
+            <Text style={styles.hint}>
+              Used to greet you on the Home screen. Tap anywhere outside to save.
+            </Text>
 
             {justSaved && <Text style={styles.savedText}>Saved</Text>}
           </Card>
@@ -127,7 +103,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   // Fills the screen so a tap on empty space (not just on the card)
-  // still dismisses the keyboard.
+  // still dismisses the keyboard and saves.
   content: {
     flex: 1,
   },
@@ -165,33 +141,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     color: colors.inkMuted,
-  },
-  actions: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: 20,
-  },
-  clearText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.inkMuted,
-  },
-  saveButton: {
-    height: 44,
-    paddingHorizontal: 24,
-    borderRadius: 22,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    color: colors.inkPrimary,
-    fontWeight: "600",
   },
   savedText: {
     marginTop: 12,
