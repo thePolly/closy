@@ -21,14 +21,12 @@ import { Screen } from "../../../src/components/Screen";
 import { FilterBar, type FilterDimension, type SortOption } from "../../../src/components/FilterBar";
 import { colors } from "../../../src/theme/colors";
 
-const FILTER_KEYS = ["clothing_type", "season", "style", "primary_color"] as const;
+const FILTER_KEYS = ["clothing_type", "style"] as const;
 type FilterKey = (typeof FILTER_KEYS)[number];
 
 const FILTER_LABELS: Record<FilterKey, string> = {
   clothing_type: "Type",
-  season: "Season",
   style: "Style",
-  primary_color: "Color",
 };
 
 function uniqueSorted(values: (string | null)[]): string[] {
@@ -43,9 +41,7 @@ export default function WardrobeScreen() {
   const [uploading, setUploading] = useState(false);
   const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
     clothing_type: null,
-    season: null,
     style: null,
-    primary_color: null,
   });
   const [sort, setSort] = useState<SortOption>("newest");
 
@@ -87,7 +83,7 @@ export default function WardrobeScreen() {
   };
 
   const handleClearFilters = () => {
-    setFilters({ clothing_type: null, season: null, style: null, primary_color: null });
+    setFilters({ clothing_type: null, style: null });
   };
 
   const pickFromCamera = async () => {
