@@ -18,7 +18,22 @@ import {
   uploadClothingItem,
 } from "../../../src/api/wardrobe";
 import { Screen } from "../../../src/components/Screen";
+import { FilterBar, type FilterDimension, type SortOption } from "../../../src/components/FilterBar";
 import { colors } from "../../../src/theme/colors";
+
+const FILTER_KEYS = ["clothing_type", "season", "style", "primary_color"] as const;
+type FilterKey = (typeof FILTER_KEYS)[number];
+
+const FILTER_LABELS: Record<FilterKey, string> = {
+  clothing_type: "Type",
+  season: "Season",
+  style: "Style",
+  primary_color: "Color",
+};
+
+function uniqueSorted(values: (string | null)[]): string[] {
+  return Array.from(new Set(values.filter((value): value is string => !!value))).sort();
+}
 
 export default function WardrobeScreen() {
   const router = useRouter();
@@ -26,6 +41,13 @@ export default function WardrobeScreen() {
   const [loading, setLoading] = useState(true);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
+    clothing_type: null,
+    season: null,
+    style: null,
+    primary_color: null,
+  });
+  const [sort, setSort] = useState<SortOption>("newest");
 
   const loadItems = useCallback(async () => {
     try {
@@ -42,6 +64,31 @@ export default function WardrobeScreen() {
       loadItems();
     }, [loadItems])
   );
+
+  const dimensions: FilterDimension[] = FILTER_KEYS.map((key) => ({
+    key,
+    label: FILTER_LABELS[key],
+    value: filters[key],
+    options: uniqueSorted(items.map((item) => item[key])),
+  }));
+
+  const hasActiveFilters = FILTER_KEYS.some((key) => filters[key] !== null);
+
+  const visibleItems = items
+    .filter((item) => FILTER_KEYS.every((key) => !filters[key] || item[key] === filters[key]))
+    .sort((a, b) =>
+      sort === "name"
+        ? displayName(a).localeCompare(displayName(b))
+        : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+  const handleSelectFilter = (key: string, value: string | null) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({ clothing_type: null, season: null, style: null, primary_color: null });
+  };
 
   const pickFromCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -129,30 +176,44 @@ export default function WardrobeScreen() {
       {loading ? (
         <ActivityIndicator style={styles.loading} />
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          numColumns={3}
-          contentContainerStyle={styles.grid}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              No clothes yet. Tap + to add your first item.
-            </Text>
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.card}
-              onPress={() => router.push(`/wardrobe/${item.id}`)}
-            >
-              <View style={styles.cardImageWrapper}>
-                <Image source={{ uri: item.image_url }} style={styles.cardImage} />
-              </View>
-              <Text style={styles.cardName} numberOfLines={1}>
-                {displayName(item)}
-              </Text>
-            </Pressable>
+        <>
+          {items.length > 0 && (
+            <FilterBar
+              dimensions={dimensions}
+              onSelectDimension={handleSelectFilter}
+              sort={sort}
+              onChangeSort={setSort}
+              hasActiveFilters={hasActiveFilters}
+              onClear={handleClearFilters}
+            />
           )}
-        />
+          <FlatList
+            data={visibleItems}
+            keyExtractor={(item) => item.id}
+            numColumns={3}
+            contentContainerStyle={styles.grid}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>
+                {items.length === 0
+                  ? "No clothes yet. Tap + to add your first item."
+                  : "No items match these filters."}
+              </Text>
+            }
+            renderItem={({ item }) => (
+              <Pressable
+                style={styles.card}
+                onPress={() => router.push(`/wardrobe/${item.id}`)}
+              >
+                <View style={styles.cardImageWrapper}>
+                  <Image source={{ uri: item.image_url }} style={styles.cardImage} />
+                </View>
+                <Text style={styles.cardName} numberOfLines={1}>
+                  {displayName(item)}
+                </Text>
+              </Pressable>
+            )}
+          />
+        </>
       )}
       <Pressable style={styles.addButton} onPress={handleAddPress}>
         <Text style={styles.addButtonText}>+</Text>
