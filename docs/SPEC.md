@@ -187,9 +187,9 @@ Users describe a clothing item in natural language in the Chat screen (e.g. "I b
 
 ## Requirements
 
-- Detect when a chat message describes a clothing item to add, vs. a general stylist question.
-- Extract clothing attributes (type, color, fit, style, etc. — the same fields as photo-based analysis) from the message using Gemini.
-- Generate a product-style image of the item on a plain white background.
+- The chat's Gemini call is given an `add_clothing_item` tool; the model invokes it when a message describes a clothing item to add, and responds normally otherwise. Intent detection is the model's own decision (function calling), not a manual keyword rule.
+- The tool call extracts clothing attributes (type, color, fit, style, etc. — the same fields as photo-based analysis).
+- Generate a product-style image of the item on a plain white background using Gemini's image generation.
 - Save the item to the wardrobe using the extracted attributes and generated image.
 - Reply in the chat confirming the item was added to the wardrobe.
 
@@ -261,8 +261,9 @@ Integrate a weather API and display the current weather in the weather card alre
 
 # Technical Stack — New for v0.4.0
 
-- Image generation capability for product-style clothing photos — provider/model not yet decided (Gemini image generation vs. a separate image API).
-- A weather API — provider not yet decided (needs an API key vs. a keyless option).
+- Gemini image generation, for product-style clothing photos — keeps a single AI provider rather than adding a separate image API.
+- Gemini function calling (tool use) in the chat orchestration, so the model itself decides when to invoke `add_clothing_item` — the chat integration is currently plain prompt/response with no tools.
+- [Open-Meteo](https://open-meteo.com/) for weather — free and keyless, no API key/signup needed.
 - `expo-location` — device location permission and coordinates; not currently a dependency.
 
 ---
