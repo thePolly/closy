@@ -4,19 +4,19 @@ AI-native wardrobe companion — an AI stylist that knows your wardrobe and help
 
 ![Home screen design](design/home-screen.png)
 
-## Features
+## What it does
 
-**MVP-0 (implemented)**
+- **Wardrobe** — upload clothing photos (camera or library); Gemini analyzes each item for type, fit, color, pattern, season, style, material, and occasions, and gives it a short name (e.g. "White T-Shirt"). Rename items, filter by type/style, sort by newest or name.
+- **AI Stylist Chat** — chat with an AI stylist that's aware of your wardrobe.
+- **Settings** — set your name; the Home screen greets you by it.
+- **Home** — a personalized greeting and a first look at outfit recommendations (still a static placeholder, not personalized yet).
 
-- Upload your wardrobe — camera or photo library, with preview before saving
-- AI-detected clothing type & color for each item
-- Chat with your AI stylist — wardrobe-aware responses via the Gemini API
+## Planned
 
-**Planned**
-
-- Daily outfit recommendations
-- Weather integration
-- Outfit visualization
+- Real outfit recommendations generated from the wardrobe (replacing the static placeholder)
+- Weather- and calendar-aware recommendations
+- Wardrobe insights (e.g. "you're missing a white T-shirt")
+- Deeper AI stylist assistance — proactive daily recommendations, follow-up conversation, eventually voice
 
 ## Tech Stack
 
@@ -35,10 +35,6 @@ Database
 
 - PostgreSQL
 
-Storage
-
-- Supabase Storage
-
 AI
 
 - Gemini API
@@ -46,10 +42,10 @@ AI
 ## Project Docs
 
 - [PRODUCT.md](PRODUCT.md) — vision & product philosophy
-- [SPEC.md](SPEC.md) — MVP-0 scope & acceptance criteria
+- [SPEC.md](SPEC.md) — current version scope & acceptance criteria
 - [TASKS.md](TASKS.md) — task breakdown & progress
 - [CLAUDE.md](CLAUDE.md) — development workflow rules
 
 ## Status
 
-MVP-0 complete — Wardrobe upload and AI Stylist Chat working end-to-end on iOS/Android via Expo Go.
+v0.3.0 — Wardrobe (upload, AI analysis, naming, filter/sort), AI Stylist Chat, Settings, and Home all working end-to-end on iOS/Android via Expo Go. See [releases](https://github.com/thePolly/closy/releases) for version history.
