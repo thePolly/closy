@@ -261,7 +261,7 @@ Integrate a weather API and display the current weather in the weather card alre
 
 # Technical Stack — New for v0.4.0
 
-- Gemini image generation, for product-style clothing photos — keeps a single AI provider rather than adding a separate image API.
+- OpenAI's `gpt-image-1-mini`, for product-style clothing photos — Gemini's image models have no free tier at all (confirmed via a live 429/RESOURCE_EXHAUSTED response), and this is the cheapest reliable option once a second provider is on the table anyway.
 - Gemini function calling (tool use) in the chat orchestration, so the model itself decides when to invoke `add_clothing_item` — the chat integration is currently plain prompt/response with no tools.
 - [Open-Meteo](https://open-meteo.com/) for weather — free and keyless, no API key/signup needed.
 - `expo-location` — device location permission and coordinates; not currently a dependency.

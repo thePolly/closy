@@ -1,4 +1,4 @@
-const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+const OPENAI_IMAGE_MODEL = "gpt-image-1-mini";
 
 export interface ClothingImageDescription {
   name: string;
@@ -25,37 +25,35 @@ function buildPrompt(item: ClothingImageDescription): string {
 }
 
 export async function generateClothingImage(item: ClothingImageDescription): Promise<Buffer> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY environment variable is not set");
+    throw new Error("OPENAI_API_KEY environment variable is not set");
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: buildPrompt(item) }] }],
-        generationConfig: { responseModalities: ["IMAGE"] },
-      }),
-    }
-  );
+  const response = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: OPENAI_IMAGE_MODEL,
+      prompt: buildPrompt(item),
+      size: "1024x1024",
+      n: 1,
+    }),
+  });
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Gemini image API error (${response.status}): ${errorBody}`);
+    throw new Error(`OpenAI image API error (${response.status}): ${errorBody}`);
   }
 
-  const data = (await response.json()) as {
-    candidates?: { content?: { parts?: { inlineData?: { data?: string } }[] } }[];
-  };
-  const base64 = data.candidates?.[0]?.content?.parts?.find(
-    (part) => part.inlineData?.data
-  )?.inlineData?.data;
+  const data = (await response.json()) as { data?: { b64_json?: string }[] };
+  const base64 = data.data?.[0]?.b64_json;
 
   if (!base64) {
-    throw new Error("Gemini API returned no image");
+    throw new Error("OpenAI API returned no image");
   }
 
   return Buffer.from(base64, "base64");
