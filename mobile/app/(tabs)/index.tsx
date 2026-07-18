@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
+import * as Location from "expo-location";
 import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { fetchCurrentWeather, type CurrentWeather } from "../../src/api/weather";
 import { Card } from "../../src/components/Card";
 import { Screen } from "../../src/components/Screen";
 import { getUserName } from "../../src/storage/userName";
@@ -14,8 +16,15 @@ function getGreeting(name: string | null): string {
   return name ? `${timeOfDay}, ${name}!` : `${timeOfDay}!`;
 }
 
+type WeatherState =
+  | { status: "loading" }
+  | { status: "ready"; data: CurrentWeather }
+  | { status: "denied" }
+  | { status: "error" };
+
 export default function HomeScreen() {
   const [userName, setUserName] = useState<string | null>(null);
+  const [weather, setWeather] = useState<WeatherState>({ status: "loading" });
 
   useFocusEffect(
     useCallback(() => {
@@ -29,6 +38,37 @@ export default function HomeScreen() {
     }, [])
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      setWeather({ status: "loading" });
+
+      (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (!active) return;
+        if (status !== "granted") {
+          setWeather({ status: "denied" });
+          return;
+        }
+
+        try {
+          const location = await Location.getCurrentPositionAsync({});
+          const data = await fetchCurrentWeather(
+            location.coords.latitude,
+            location.coords.longitude
+          );
+          if (active) setWeather({ status: "ready", data });
+        } catch {
+          if (active) setWeather({ status: "error" });
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
   return (
     <Screen style={styles.container}>
       <Text style={styles.greeting}>{getGreeting(userName)}</Text>
@@ -36,6 +76,21 @@ export default function HomeScreen() {
 
       <Card style={styles.card}>
         <Text style={styles.cardLabel}>Today</Text>
+
+        {weather.status === "ready" && (
+          <View style={styles.weatherRow}>
+            <Ionicons name={weather.data.icon} size={18} color={colors.accent} />
+            <Text style={styles.weatherText}>
+              {weather.data.temperature}° {weather.data.condition}
+            </Text>
+          </View>
+        )}
+        {weather.status === "loading" && (
+          <Text style={styles.weatherHint}>Loading weather…</Text>
+        )}
+        {(weather.status === "denied" || weather.status === "error") && (
+          <Text style={styles.weatherHint}>Weather unavailable</Text>
+        )}
 
         <View style={styles.placeholderImage}>
           <Ionicons name="shirt-outline" size={48} color={colors.accent} />
@@ -74,6 +129,21 @@ const styles = StyleSheet.create({
     fontFamily: "PlayfairDisplay_700Bold",
     fontSize: 18,
     color: colors.inkPrimary,
+  },
+  weatherRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  weatherText: {
+    fontSize: 14,
+    color: colors.inkSecondary,
+  },
+  weatherHint: {
+    marginTop: 8,
+    fontSize: 13,
+    color: colors.inkMuted,
   },
   placeholderImage: {
     marginTop: 16,
