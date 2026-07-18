@@ -41,9 +41,10 @@ AI
 
 ## Project Docs
 
-- [PRODUCT.md](PRODUCT.md) — vision & product philosophy
-- [SPEC.md](SPEC.md) — current version scope & acceptance criteria
-- [TASKS.md](TASKS.md) — task breakdown & progress
+- [docs/PRODUCT.md](docs/PRODUCT.md) — vision & product philosophy
+- [docs/SPEC.md](docs/SPEC.md) — current version scope & acceptance criteria
+- [docs/TASKS.md](docs/TASKS.md) — task breakdown & progress
+- [docs/DESIGN.md](docs/DESIGN.md) — design system (colors, typography, spacing)
 - [CLAUDE.md](CLAUDE.md) — development workflow rules
 
 ## Status

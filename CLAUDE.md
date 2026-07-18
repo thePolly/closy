@@ -4,11 +4,11 @@
 
 Always read the following documents before starting work:
 
-1. PRODUCT.md
-2. SPEC.md
-3. TASKS.md
+1. docs/PRODUCT.md
+2. docs/SPEC.md
+3. docs/TASKS.md
 
-When working on frontend tasks check design/DESIGN.md file for styles.
+When working on frontend tasks check docs/DESIGN.md file for styles.
 
 Implement only the current MVP unless explicitly instructed otherwise.
 
@@ -18,7 +18,7 @@ Implement only the current MVP unless explicitly instructed otherwise.
 
 Before implementing a feature:
 
-- verify the requirements in SPEC.md
+- verify the requirements in docs/SPEC.md
 - verify the acceptance criteria
 - ask questions if anything is ambiguous
 
@@ -78,7 +78,7 @@ When introducing a new convention or dependency, explain why it is needed.
 
 After completing work:
 
-- update TASKS.md
+- update docs/TASKS.md
 - explain what was implemented
 - describe any important architectural decisions
 
@@ -94,6 +94,6 @@ Never push directly to `main`. For every task:
 
 - create a feature branch off `main` (e.g. `feat/wardrobe-upload`, `chore/tasks-md-update`)
 - commit work to that branch, push the branch
-- open a pull request describing only what changed and why in a concise way, referencing the relevant TASKS.md item(s)
+- open a pull request describing only what changed and why in a concise way, referencing the relevant docs/TASKS.md item(s)
 - wait for the user to review and merge on GitHub — do not merge automatically, even after approval in chat
 - after it's merged, pull the latest `main` locally before starting the next task

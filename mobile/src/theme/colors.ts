@@ -1,4 +1,4 @@
-// Tokens from design/DESIGN.md — keep in sync with that file.
+// Tokens from docs/DESIGN.md — keep in sync with that file.
 export const colors = {
   background: "#FDF6EC",
   surface: "#FFFFFF",
