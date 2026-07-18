@@ -80,6 +80,12 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 **Alternative:** Send the saved item back to Gemini for a warmer, personality-matched confirmation.
 **Why:** A templated string is free; a second call would cost one more Gemini request per added item on top of the extraction call and the image-generation call, which given the API quota isn't worth it just to reword a confirmation.
 
+### OpenAI's `gpt-image-1-mini` instead of Gemini for image generation
+
+**Chosen:** `generateClothingImage.ts` calls OpenAI's Images API (`gpt-image-1-mini`) instead of Gemini.
+**Alternative:** Keep using a Gemini image model (`gemini-2.5-flash-image` / the newer `gemini-3.1-flash-lite-image`), as originally planned to keep a single AI provider.
+**Why:** Every Gemini image-generation model has a hard **zero** free-tier quota — confirmed live via a 429 `RESOURCE_EXHAUSTED` response with `limit: 0`, not a temporary rate limit. Some image generation requires a paid provider either way, so the "single provider" simplicity argument no longer holds; `gpt-image-1-mini` is the cheapest reliable option once a second provider is on the table (~$0.005/image vs. ~$0.034 for Gemini's cheapest current image model). Chat and clothing analysis stay on Gemini, which already has a genuine free tier for text.
+
 ### No database table for chat history
 
 **Chosen:** Keep the conversation in the phone app's memory only (resets when the app is closed), and send the recent messages along with each new question.
