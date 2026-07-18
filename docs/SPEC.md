@@ -160,3 +160,117 @@ v0.3.0 is successful when:
 2. Every item has a clear name — auto-generated, editable, with duplicates disambiguated.
 3. Users can filter and sort their wardrobe to find items quickly.
 4. None of the above adds Gemini API cost beyond the existing one-call-per-upload analysis.
+
+---
+
+# Closy v0.4.0
+
+**Version:** 0.4
+
+**Status:** Ready for Development
+
+---
+
+# Goal
+
+Make wardrobe management feel AI-native instead of form-based: add clothing by describing it in chat, greet new users with minimal onboarding, and surface live weather on Home.
+
+Unlike v0.3.0, this release does add new API cost — image generation per chat-added item and a weather API call per Home visit.
+
+---
+
+# Feature 1 — Add Clothing Through Chat
+
+## Description
+
+Users describe a clothing item in natural language in the Chat screen (e.g. "I bought a white oversized linen shirt") instead of uploading a photo. The app extracts structured attributes with an LLM, generates a clean product-style image on a white background, and adds the item to the wardrobe automatically.
+
+## Requirements
+
+- Detect when a chat message describes a clothing item to add, vs. a general stylist question.
+- Extract clothing attributes (type, color, fit, style, etc. — the same fields as photo-based analysis) from the message using Gemini.
+- Generate a product-style image of the item on a plain white background.
+- Save the item to the wardrobe using the extracted attributes and generated image.
+- Reply in the chat confirming the item was added to the wardrobe.
+
+## Acceptance Criteria
+
+- Describing a clothing item in chat results in a new wardrobe item with a generated image and sensible attributes.
+- The chat shows a confirmation message once the item is added.
+- A message that isn't a clothing description doesn't create an item — normal chat still works.
+- If extraction or image generation fails, the chat tells the user and no partial/broken item is created.
+
+## Out of Scope
+
+- Voice input.
+- Editing existing wardrobe items through chat.
+- Deleting items through chat.
+- Outfit recommendations.
+
+---
+
+# Feature 2 — Simple Onboarding
+
+## Description
+
+On first launch, a minimal 1–2 screen flow asks for the user's name, saves it locally, and personalizes the Home greeting. Returning users skip straight to Home.
+
+## Requirements
+
+- Detect first launch (no name stored locally yet).
+- Ask for the user's name on a simple onboarding screen.
+- Save the name locally, using the same storage the Settings screen already uses.
+- Skip onboarding on subsequent launches once a name is stored.
+
+## Acceptance Criteria
+
+- First launch shows onboarding; entering a name lands on Home with a personalized greeting.
+- Closing and reopening the app afterward goes straight to Home — onboarding isn't shown again.
+- The name set here is the same one shown and editable on the Settings screen.
+
+---
+
+# Feature 3 — Weather on Home
+
+## Description
+
+Integrate a weather API and display the current weather in the weather card already shown in the Home screen design.
+
+## Requirements
+
+- Fetch weather from a public weather API using the user's current location (with permission).
+- Display current temperature, a weather icon, and condition (e.g. "Sunny", "Cloudy", "Rain").
+- Load automatically when the Home screen opens.
+
+## Acceptance Criteria
+
+- Weather is fetched from a public weather API.
+- User location is obtained with permission.
+- Current temperature, icon, and condition are displayed.
+- Loading and error states are handled gracefully.
+- The UI matches the existing Home screen design.
+
+## Out of Scope
+
+- Weather forecasts.
+- AI recommendations based on weather.
+- Outfit suggestions.
+- Weather notifications.
+
+---
+
+# Technical Stack — New for v0.4.0
+
+- Image generation capability for product-style clothing photos — provider/model not yet decided (Gemini image generation vs. a separate image API).
+- A weather API — provider not yet decided (needs an API key vs. a keyless option).
+- `expo-location` — device location permission and coordinates; not currently a dependency.
+
+---
+
+# Definition of Success
+
+v0.4.0 is successful when:
+
+1. A user can add a clothing item by describing it in chat, with no form or photo required.
+2. First-time users get a short onboarding instead of landing on an unpersonalized app.
+3. The Home screen shows real, current weather for the user's location.

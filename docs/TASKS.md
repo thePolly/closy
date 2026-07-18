@@ -102,3 +102,31 @@
 - [x] Sort by newest (default) and by name (A–Z).
 - [x] Filtering and sorting operate on already-loaded data (no new API calls).
 - [x] Allow clearing/resetting the active filters.
+
+---
+
+# v0.4.0
+
+## Add Clothing Through Chat
+
+- [ ] Decide the image-generation model/API (see SPEC.md Feature 1).
+- [ ] Detect whether a chat message describes a clothing item to add.
+- [ ] Extract clothing attributes from the message via Gemini (reuse the existing analysis fields).
+- [ ] Generate a product-style image on a white background for the item.
+- [ ] Save the new item (attributes + generated image) to the wardrobe.
+- [ ] Reply in chat confirming the item was added, or explaining a failure.
+
+## Simple Onboarding
+
+- [ ] Add a 1–2 screen onboarding flow asking for the user's name.
+- [ ] Show onboarding on first launch only (no name stored yet), before the tab navigator.
+- [ ] Save the name using the existing local-storage helper.
+- [ ] Skip onboarding on subsequent launches once a name exists.
+
+## Weather on Home
+
+- [ ] Decide the weather API provider (see SPEC.md Feature 3).
+- [ ] Add `expo-location` and request location permission.
+- [ ] Fetch current temperature, condition, and icon for the user's location.
+- [ ] Wire the Home weather card to real data, matching the existing design.
+- [ ] Handle loading and error states (denied permission, failed fetch) gracefully.
