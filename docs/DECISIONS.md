@@ -22,6 +22,12 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 **Alternative:** Add the safe-area padding separately inside each of the four screen files.
 **Why:** The notch/status-bar bug affected all four screens the same way. Fixing it in one shared place means any new screen added later gets it for free, instead of having to remember to add it every time.
 
+### `Stack.Protected` instead of an imperative redirect for onboarding
+
+**Chosen:** Expo Router's `Stack.Protected` — wrap the `onboarding` and `(tabs)` screens each in their own `guard` condition; only one is reachable at a time based on whether a name is stored.
+**Alternative:** Check for a stored name inside the Home screen itself and call `router.replace("/onboarding")` imperatively if missing.
+**Why:** `Stack.Protected` is declarative — the gate lives in one place (`_layout.tsx`) instead of being duplicated in every screen that shouldn't be reachable before onboarding, and it's the pattern Expo Router's own docs recommend for this exact case (gating a whole section of the app behind a condition).
+
 ### `EXPO_PUBLIC_API_URL` instead of hardcoding the backend address
 
 **Chosen:** An environment variable holding the backend's address (e.g. `http://192.168.1.10:3000`).
