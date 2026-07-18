@@ -117,10 +117,10 @@
 
 ## Simple Onboarding
 
-- [ ] Add a 1–2 screen onboarding flow asking for the user's name.
-- [ ] Show onboarding on first launch only (no name stored yet), before the tab navigator.
-- [ ] Save the name using the existing local-storage helper.
-- [ ] Skip onboarding on subsequent launches once a name exists.
+- [x] Add a 1–2 screen onboarding flow asking for the user's name.
+- [x] Show onboarding on first launch only (no name stored yet), before the tab navigator.
+- [x] Save the name using the existing local-storage helper.
+- [x] Skip onboarding on subsequent launches once a name exists.
 
 ## Weather on Home
 
