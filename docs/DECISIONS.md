@@ -68,6 +68,18 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 **Alternative:** Pin an exact model name/version (e.g. a specific dated model).
 **Why:** Flash-tier models are cheaper and faster, which matters given a small API quota. Using the "latest" alias also means we don't have to remember to update the model name later when Google retires an old version.
 
+### Gemini function calling instead of manual keyword matching for "add via chat"
+
+**Chosen:** Give the chat's Gemini call an `add_clothing_item` tool; the model itself decides whether a message describes a real item to add, and returns the extracted attributes as the function's arguments in the same call.
+**Alternative:** Manually scan messages for keywords/patterns ("I bought...", "I have a new...") to guess intent, then run a separate extraction step.
+**Why:** Keyword matching is brittle and doesn't scale to how people actually phrase things. Function calling gets both intent detection and attribute extraction from one Gemini call — no extra request compared to a naive keyword-then-extract approach.
+
+### Templated confirmation text instead of a second Gemini call
+
+**Chosen:** After adding the item, the reply ("Added White Oversized Linen Shirt to your wardrobe!") is built directly in code.
+**Alternative:** Send the saved item back to Gemini for a warmer, personality-matched confirmation.
+**Why:** A templated string is free; a second call would cost one more Gemini request per added item on top of the extraction call and the image-generation call, which given the API quota isn't worth it just to reword a confirmation.
+
 ### No database table for chat history
 
 **Chosen:** Keep the conversation in the phone app's memory only (resets when the app is closed), and send the recent messages along with each new question.

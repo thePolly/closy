@@ -6,7 +6,7 @@ import multer from "multer";
 import { analyzeClothing, type ClothingAnalysis } from "../ai/analyzeClothing";
 import { pool } from "../db/pool";
 
-const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "../../uploads");
+export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "../../uploads");
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -43,6 +43,46 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
 export function mimeTypeForFile(filename: string): string {
   const extension = path.extname(filename).toLowerCase();
   return MIME_TYPES_BY_EXTENSION[extension] ?? "image/jpeg";
+}
+
+export interface ClothingItemInput {
+  name: string;
+  clothingType: string;
+  fit: string | null;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  pattern: string | null;
+  season: string | null;
+  style: string | null;
+  material: string | null;
+  suitableOccasions: string | null;
+  confidenceScore: number | null;
+}
+
+export async function saveClothingItem(imageUrl: string, item: ClothingItemInput) {
+  const result = await pool.query(
+    `INSERT INTO clothing_item (
+       image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
+       season, style, material, suitable_occasions, confidence_score, analysis_status
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'completed')
+     RETURNING ${SELECT_COLUMNS}`,
+    [
+      imageUrl,
+      await uniqueName(item.name),
+      item.clothingType,
+      item.fit,
+      item.primaryColor,
+      item.secondaryColor,
+      item.pattern,
+      item.season,
+      item.style,
+      item.material,
+      item.suitableOccasions,
+      item.confidenceScore,
+    ]
+  );
+  return result.rows[0];
 }
 
 async function runAnalysis(
@@ -136,35 +176,20 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
   const outcome = await runAnalysis(imageBuffer, req.file.mimetype);
   const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
 
-  const fields =
-    outcome.status === "completed"
-      ? [
-          await uniqueName(outcome.analysis.name),
-          outcome.analysis.clothingType,
-          outcome.analysis.fit,
-          outcome.analysis.primaryColor,
-          outcome.analysis.secondaryColor,
-          outcome.analysis.pattern,
-          outcome.analysis.season,
-          outcome.analysis.style,
-          outcome.analysis.material,
-          outcome.analysis.suitableOccasions,
-          outcome.analysis.confidenceScore,
-          "completed",
-        ]
-      : [null, null, null, null, null, null, null, null, null, null, null, "failed"];
+  if (outcome.status === "failed") {
+    const result = await pool.query(
+      `INSERT INTO clothing_item (image_url, analysis_status) VALUES ($1, 'failed')
+       RETURNING ${SELECT_COLUMNS}`,
+      [imageUrl]
+    );
+    res.status(201).json(result.rows[0]);
+    return;
+  }
 
-  const result = await pool.query(
-    `INSERT INTO clothing_item (
-       image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
-       season, style, material, suitable_occasions, confidence_score, analysis_status
-     )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-     RETURNING ${SELECT_COLUMNS}`,
-    [imageUrl, ...fields]
-  );
-
-  res.status(201).json(result.rows[0]);
+  const saved = await saveClothingItem(imageUrl, {
+    ...outcome.analysis,
+  });
+  res.status(201).json(saved);
 });
 
 wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {

@@ -109,11 +109,11 @@
 
 ## Add Clothing Through Chat
 
-- [ ] Add an `add_clothing_item` tool/function definition to the chat's Gemini call.
-- [ ] Handle the tool-call response: extract clothing attributes (reuse the existing analysis fields).
-- [ ] Generate a product-style image on a white background via Gemini image generation.
-- [ ] Save the new item (attributes + generated image) to the wardrobe.
-- [ ] Reply in chat confirming the item was added, or explaining a failure.
+- [x] Add an `add_clothing_item` tool/function definition to the chat's Gemini call.
+- [x] Handle the tool-call response: extract clothing attributes (reuse the existing analysis fields).
+- [x] Generate a product-style image on a white background via Gemini image generation.
+- [x] Save the new item (attributes + generated image) to the wardrobe.
+- [x] Reply in chat confirming the item was added, or explaining a failure.
 
 ## Simple Onboarding
 

@@ -88,9 +88,9 @@ describe("POST /wardrobe", () => {
     expect(res.body.analysis_status).toBe("completed");
     expect(analyzeClothing).toHaveBeenCalledOnce();
 
-    const insertParams = vi.mocked(pool.query).mock.calls[1][1] as unknown[];
-    expect(insertParams).toContain("completed");
-    expect(insertParams).toContain("White T-Shirt");
+    const insertCall = vi.mocked(pool.query).mock.calls[1];
+    expect(insertCall[0]).toContain("'completed'");
+    expect(insertCall[1]).toContain("White T-Shirt");
   });
 
   it("numbers a duplicate name on save", async () => {
@@ -129,9 +129,9 @@ describe("POST /wardrobe", () => {
     expect(res.status).toBe(201);
     expect(res.body.analysis_status).toBe("failed");
 
-    const insertParams = vi.mocked(pool.query).mock.calls[0][1] as unknown[];
-    expect(insertParams).toContain("failed");
-    expect(insertParams).not.toContain("White");
+    const insertCall = vi.mocked(pool.query).mock.calls[0];
+    expect(insertCall[0]).toContain("'failed'");
+    expect(insertCall[1]).not.toContain("White");
   });
 });
 
