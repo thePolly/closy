@@ -31,6 +31,12 @@
           "cameraPermission": "Closy needs access to your camera so you can photograph clothing items."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Closy needs your location to show the current weather on the Home screen."
+        }
+      ],
       "expo-font"
     ]
   }

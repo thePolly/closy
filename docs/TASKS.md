@@ -124,7 +124,7 @@
 
 ## Weather on Home
 
-- [ ] Add `expo-location` and request location permission.
-- [ ] Fetch current temperature, condition, and icon from Open-Meteo for the user's location.
-- [ ] Wire the Home weather card to real data, matching the existing design.
-- [ ] Handle loading and error states (denied permission, failed fetch) gracefully.
+- [x] Add `expo-location` and request location permission.
+- [x] Fetch current temperature, condition, and icon from Open-Meteo for the user's location.
+- [x] Wire the Home weather card to real data, matching the existing design.
+- [x] Handle loading and error states (denied permission, failed fetch) gracefully.
