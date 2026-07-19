@@ -2,7 +2,6 @@
 
 AI-native wardrobe companion — an AI stylist that knows your wardrobe and helps you decide what to wear.
 
-![Home screen design](design/home-screen.png)
 
 ## What it does
 
