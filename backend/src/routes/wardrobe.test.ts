@@ -4,8 +4,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 vi.mock("../db/pool", () => ({ pool: { query: vi.fn() } }));
 vi.mock("../ai/analyzeClothing", () => ({ analyzeClothing: vi.fn() }));
+vi.mock("../ai/recommendOutfit", () => ({ recommendOutfit: vi.fn() }));
 
 import { analyzeClothing } from "../ai/analyzeClothing";
+import { recommendOutfit } from "../ai/recommendOutfit";
 import { createApp } from "../app";
 import { pool } from "../db/pool";
 import { mimeTypeForFile, uniqueName } from "./wardrobe";
@@ -34,6 +36,7 @@ beforeAll(() => {
 afterEach(() => {
   vi.mocked(pool.query).mockReset();
   vi.mocked(analyzeClothing).mockReset();
+  vi.mocked(recommendOutfit).mockReset();
   for (const file of fs.readdirSync(UPLOADS_DIR)) {
     fs.rmSync(`${UPLOADS_DIR}/${file}`);
   }
@@ -237,5 +240,60 @@ describe("uniqueName", () => {
   it("matches existing names case-insensitively", async () => {
     vi.mocked(pool.query).mockResolvedValue({ rows: [{ name: "jeans" }] } as never);
     expect(await uniqueName("Jeans")).toBe("Jeans 2");
+  });
+});
+
+describe("POST /wardrobe/recommend-outfit", () => {
+  it("skips the Gemini call and prompts to add clothes when the wardrobe is empty", async () => {
+    vi.mocked(pool.query).mockResolvedValue({ rows: [] } as never);
+
+    const res = await request(app).post("/wardrobe/recommend-outfit").send({});
+
+    expect(res.status).toBe(200);
+    expect(res.body.items).toEqual([]);
+    expect(recommendOutfit).not.toHaveBeenCalled();
+  });
+
+  it("returns a description and the matching items for a recommendation", async () => {
+    vi.mocked(pool.query).mockResolvedValue({
+      rows: [
+        { id: "1", name: "White T-Shirt", clothing_type: "T-Shirt" },
+        { id: "2", name: "Blue Jeans", clothing_type: "Jeans" },
+        { id: "3", name: "Black Blazer", clothing_type: "Blazer" },
+      ],
+    } as never);
+    vi.mocked(recommendOutfit).mockResolvedValue({
+      description: "A crisp white tee with jeans — easy and comfortable for today.",
+      itemIds: ["1", "2"],
+      missingSuggestions: [],
+    });
+
+    const res = await request(app)
+      .post("/wardrobe/recommend-outfit")
+      .send({ weather: { temperature: 22, condition: "Sunny" } });
+
+    expect(res.status).toBe(200);
+    expect(res.body.description).toMatch(/white tee/i);
+    expect(res.body.items).toHaveLength(2);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual(["1", "2"]);
+  });
+
+  it("passes missing-category suggestions through untouched", async () => {
+    vi.mocked(pool.query).mockResolvedValue({
+      rows: [{ id: "1", name: "White T-Shirt", clothing_type: "T-Shirt" }],
+    } as never);
+    vi.mocked(recommendOutfit).mockResolvedValue({
+      description: "Your white tee works, but you have no bottoms or shoes saved yet.",
+      itemIds: ["1"],
+      missingSuggestions: [
+        { category: "bottom", description: "Dark wash jeans would pair well" },
+        { category: "shoes", description: "White sneakers" },
+      ],
+    });
+
+    const res = await request(app).post("/wardrobe/recommend-outfit").send({});
+
+    expect(res.status).toBe(200);
+    expect(res.body.missingSuggestions).toHaveLength(2);
   });
 });

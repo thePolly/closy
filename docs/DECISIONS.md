@@ -56,6 +56,18 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 
 ## AI / Data
 
+### Structured JSON output instead of function calling for outfit recommendations
+
+**Chosen:** `recommendOutfit.ts` uses `responseSchema` + `responseMimeType: "application/json"` (same technique as `analyzeClothing.ts`) to get a structured recommendation back from one Gemini call.
+**Alternative:** Gemini function calling (the `tools` mechanism used in `generateStylistReply.ts` for `add_clothing_item`).
+**Why:** Function calling earns its complexity when the model must *decide* whether to invoke a tool or just reply in text. Here there's no such branch — a recommendation is always wanted — so a plain structured-JSON call is simpler and matches the pattern already used for one-shot structured extraction.
+
+### Manual "Generate outfit" button instead of auto-generating on Home open
+
+**Chosen:** The recommendation only runs when the user taps "Generate outfit" / "Regenerate outfit."
+**Alternative:** Auto-fetch a recommendation every time Home gains focus, the same way weather already does.
+**Why:** Weather is free and keyless; an outfit recommendation is a real Gemini call. Auto-firing it on every tab switch would burn API quota just from browsing the app, not from any real request for a new outfit.
+
 ### Local disk + random stub instead of waiting for real Supabase/Gemini access
 
 **Chosen:** Store photos on the backend's local disk, and return a random clothing type/color guess instead of a real AI answer.
