@@ -26,6 +26,17 @@ export function displayName(item: ClothingItem): string {
   return item.name ?? item.clothing_type ?? "Unnamed item";
 }
 
+export interface MissingSuggestion {
+  category: string;
+  description: string;
+}
+
+export interface OutfitRecommendation {
+  description: string;
+  items: ClothingItem[];
+  missingSuggestions: MissingSuggestion[];
+}
+
 async function parseErrorMessage(response: Response): Promise<string> {
   const body = await response.json().catch(() => ({ message: response.statusText }));
   return body.message ?? `Request failed (${response.status})`;
@@ -62,6 +73,20 @@ export async function renameItem(id: string, name: string): Promise<ClothingItem
 export async function retryAnalysis(id: string): Promise<ClothingItem> {
   const response = await fetch(`${API_URL}/wardrobe/${id}/retry-analysis`, {
     method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+  return response.json();
+}
+
+export async function fetchOutfitRecommendation(
+  weather: { temperature: number; condition: string } | null
+): Promise<OutfitRecommendation> {
+  const response = await fetch(`${API_URL}/wardrobe/recommend-outfit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ weather }),
   });
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));

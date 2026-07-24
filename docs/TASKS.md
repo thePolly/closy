@@ -2,8 +2,8 @@
 
 - [x] Display weather on Home screen (already shipped in v0.4.0)
 - [x] Display Workday / Weekend indicator on Home screen
-- [ ] Design Today's Outfit section
-- [ ] Generate outfit recommendation
-- [ ] Display recommended clothing cards
-- [ ] Navigate to wardrobe item
-- [ ] Regenerate outfit
+- [x] Design Today's Outfit section
+- [x] Generate outfit recommendation
+- [x] Display recommended clothing cards
+- [x] Navigate to wardrobe item
+- [x] Regenerate outfit

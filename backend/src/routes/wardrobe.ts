@@ -4,6 +4,7 @@ import path from "node:path";
 import { Router } from "express";
 import multer from "multer";
 import { analyzeClothing, type ClothingAnalysis } from "../ai/analyzeClothing";
+import { recommendOutfit, type WardrobeItemSummary } from "../ai/recommendOutfit";
 import { pool } from "../db/pool";
 
 export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "../../uploads");
@@ -164,6 +165,53 @@ wardrobeRouter.patch("/:id", async (req, res) => {
   }
 
   res.json(result.rows[0]);
+});
+
+function currentDayType(): "Workday" | "Weekend" {
+  const day = new Date().getDay();
+  return day === 0 || day === 6 ? "Weekend" : "Workday";
+}
+
+wardrobeRouter.post("/recommend-outfit", async (req, res) => {
+  const { weather } = req.body as {
+    weather?: { temperature: number; condition: string } | null;
+  };
+
+  const result = await pool.query(
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE analysis_status = 'completed'`
+  );
+
+  if (result.rows.length === 0) {
+    res.json({
+      description: "Add some clothes to your wardrobe to get outfit ideas!",
+      items: [],
+      missingSuggestions: [],
+    });
+    return;
+  }
+
+  const summaries: WardrobeItemSummary[] = result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    clothingType: row.clothing_type,
+    primaryColor: row.primary_color,
+    secondaryColor: row.secondary_color,
+    pattern: row.pattern,
+    season: row.season,
+    style: row.style,
+    material: row.material,
+    suitableOccasions: row.suitable_occasions,
+  }));
+
+  const recommendation = await recommendOutfit(summaries, weather ?? null, currentDayType());
+
+  const items = result.rows.filter((row) => recommendation.itemIds.includes(row.id));
+
+  res.json({
+    description: recommendation.description,
+    items,
+    missingSuggestions: recommendation.missingSuggestions,
+  });
 });
 
 wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
