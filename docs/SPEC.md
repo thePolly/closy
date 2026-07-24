@@ -275,3 +275,59 @@ v0.4.0 is successful when:
 1. A user can add a clothing item by describing it in chat, with no form or photo required.
 2. First-time users get a short onboarding instead of landing on an unpersonalized app.
 3. The Home screen shows real, current weather for the user's location.
+
+---
+
+# Closy v0.5.0
+
+**Version:** 0.5
+
+**Status:** Ready for Development
+
+---
+
+# Goal
+
+Allow users to generate outfit recommendations from their wardrobe directly on the Home screen.
+
+---
+
+# Feature 1 — AI Outfit Recommendations
+
+## Description
+
+The Home screen's Today card shows the current weather, the current weekday, and a wardrobe-based outfit recommendation shown as clickable clothing cards. Users can regenerate a different outfit on demand.
+
+## Requirements
+
+- Display the current weather on the Home screen (already implemented in v0.4.0 — carried over as part of this section, not new work).
+- Display the current day of the week.
+- Generate an outfit recommendation using the items already in the user's wardrobe.
+- Display the recommended outfit as clickable clothing cards.
+- Tapping a card opens the corresponding clothing item's details screen.
+- Let the user generate another outfit with a single button.
+
+## Acceptance Criteria
+
+- Home screen displays current weather.
+- Home screen displays the current weekday.
+- User can generate an outfit recommendation.
+- The outfit is generated using wardrobe items.
+- Clothing cards are clickable.
+- Tapping a card opens the corresponding wardrobe item.
+- User can regenerate another outfit.
+
+## Out of Scope
+
+- Automatic daily outfit generation.
+- Outfit history.
+- Weather-aware outfit recommendations.
+- Calendar integration.
+- Favorites.
+- Saving outfits.
+
+---
+
+# Definition of Success
+
+v0.5.0 is successful when a user can open Home, see today's weather and weekday, generate an outfit recommendation from their own wardrobe, tap into any recommended item to view its details, and regenerate a different outfit on demand.

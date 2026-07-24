@@ -128,3 +128,17 @@
 - [x] Fetch current temperature, condition, and icon from Open-Meteo for the user's location.
 - [x] Wire the Home weather card to real data, matching the existing design.
 - [x] Handle loading and error states (denied permission, failed fetch) gracefully.
+
+---
+
+# v0.5.0
+
+## AI Outfit Recommendations
+
+- [x] Display weather on Home screen (already shipped in v0.4.0).
+- [ ] Display current weekday.
+- [ ] Design Today's Outfit section.
+- [ ] Generate outfit recommendation.
+- [ ] Display recommended clothing cards.
+- [ ] Navigate to clothing details.
+- [ ] Regenerate outfit.
