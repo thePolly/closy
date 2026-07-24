@@ -1,7 +1,7 @@
 # v0.5.0
 
-- [ ] Display weather on Home screen
-- [ ] Display current weekday
+- [x] Display weather on Home screen (already shipped in v0.4.0)
+- [ ] Display Workday / Weekend indicator on Home screen
 - [ ] Design Today's Outfit section
 - [ ] Generate outfit recommendation
 - [ ] Display recommended clothing cards

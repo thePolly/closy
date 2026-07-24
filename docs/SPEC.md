@@ -6,8 +6,8 @@ Allow users to generate outfit recommendations from their wardrobe directly on t
 
 ## Features
 
-- Display current weather.
-- Display current weekday.
+- Display current weather (already implemented).
+- Display a Workday / Weekend indicator for today, matching the prototype design.
 - Generate outfit recommendations from the user's wardrobe.
 - Display recommended clothing as clickable cards.
 - Open a wardrobe item when a clothing card is tapped.
@@ -16,7 +16,7 @@ Allow users to generate outfit recommendations from their wardrobe directly on t
 ## Acceptance Criteria
 
 - Weather is displayed.
-- Current weekday is displayed.
+- Home screen shows "Workday" or "Weekend" for today, matching the prototype.
 - User can generate an outfit.
 - Outfit uses wardrobe items.
 - Clothing cards are clickable.
