@@ -16,6 +16,11 @@ function getGreeting(name: string | null): string {
   return name ? `${timeOfDay}, ${name}!` : `${timeOfDay}!`;
 }
 
+function getDayType(): "Workday" | "Weekend" {
+  const day = new Date().getDay();
+  return day === 0 || day === 6 ? "Weekend" : "Workday";
+}
+
 type WeatherState =
   | { status: "loading" }
   | { status: "ready"; data: CurrentWeather }
@@ -77,20 +82,29 @@ export default function HomeScreen() {
       <Card style={styles.card}>
         <Text style={styles.cardLabel}>Today</Text>
 
-        {weather.status === "ready" && (
+        <View style={styles.todayRow}>
+          {weather.status === "ready" && (
+            <View style={styles.weatherRow}>
+              <Ionicons name={weather.data.icon} size={18} color={colors.accent} />
+              <Text style={styles.weatherText}>
+                {weather.data.temperature}° {weather.data.condition}
+              </Text>
+            </View>
+          )}
+          {weather.status === "loading" && (
+            <Text style={styles.weatherHint}>Loading weather…</Text>
+          )}
+          {(weather.status === "denied" || weather.status === "error") && (
+            <Text style={styles.weatherHint}>Weather unavailable</Text>
+          )}
+
+          <View style={styles.divider} />
+
           <View style={styles.weatherRow}>
-            <Ionicons name={weather.data.icon} size={18} color={colors.accent} />
-            <Text style={styles.weatherText}>
-              {weather.data.temperature}° {weather.data.condition}
-            </Text>
+            <Ionicons name="briefcase-outline" size={16} color={colors.accent} />
+            <Text style={styles.weatherText}>{getDayType()}</Text>
           </View>
-        )}
-        {weather.status === "loading" && (
-          <Text style={styles.weatherHint}>Loading weather…</Text>
-        )}
-        {(weather.status === "denied" || weather.status === "error") && (
-          <Text style={styles.weatherHint}>Weather unavailable</Text>
-        )}
+        </View>
 
         <View style={styles.placeholderImage}>
           <Ionicons name="shirt-outline" size={48} color={colors.accent} />
@@ -130,18 +144,27 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.inkPrimary,
   },
-  weatherRow: {
+  todayRow: {
     marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
+    gap: 10,
+  },
+  weatherRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
+  },
+  divider: {
+    width: 1,
+    height: 16,
+    backgroundColor: colors.border,
   },
   weatherText: {
     fontSize: 14,
     color: colors.inkSecondary,
   },
   weatherHint: {
-    marginTop: 8,
     fontSize: 13,
     color: colors.inkMuted,
   },
