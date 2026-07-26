@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Location from "expo-location";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -64,36 +64,34 @@ export default function HomeScreen() {
     }, [])
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setWeather({ status: "loading" });
+  useEffect(() => {
+    let active = true;
+    setWeather({ status: "loading" });
 
-      (async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (!active) return;
-        if (status !== "granted") {
-          setWeather({ status: "denied" });
-          return;
-        }
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (!active) return;
+      if (status !== "granted") {
+        setWeather({ status: "denied" });
+        return;
+      }
 
-        try {
-          const location = await Location.getCurrentPositionAsync({});
-          const data = await fetchCurrentWeather(
-            location.coords.latitude,
-            location.coords.longitude
-          );
-          if (active) setWeather({ status: "ready", data });
-        } catch {
-          if (active) setWeather({ status: "error" });
-        }
-      })();
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const data = await fetchCurrentWeather(
+          location.coords.latitude,
+          location.coords.longitude
+        );
+        if (active) setWeather({ status: "ready", data });
+      } catch {
+        if (active) setWeather({ status: "error" });
+      }
+    })();
 
-      return () => {
-        active = false;
-      };
-    }, [])
-  );
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleGenerateOutfit = async () => {
     setOutfit({ status: "loading" });
