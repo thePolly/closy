@@ -18,7 +18,10 @@
 - Simple onboarding
 - Weather on Home screen
 
-## 🚧 v0.5.0
+## ✅ v0.5.0
 - AI outfit recommendations
 - Clickable outfit cards
 - Weather and weekday on Home screen
+
+## 🚧 v0.6.0
+- Login (no password yet) and per-account wardrobes

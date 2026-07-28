@@ -1,32 +1,35 @@
-# v0.5.0 – AI Outfit Recommendations
+# v0.6.0 – Login & Multi-User Support
 
 ## Goal
 
-Allow users to generate outfit recommendations from their wardrobe directly on the Home screen.
+Give each person their own separate wardrobe by adding a simple login step, laying the groundwork for real authentication later without redesigning the data model.
 
 ## Features
 
-- Display current weather (already implemented).
-- Display a Workday / Weekend indicator for today, matching the prototype design.
-- Generate outfit recommendations from the user's wardrobe.
-- Display recommended clothing as clickable cards.
-- Open a wardrobe item when a clothing card is tapped.
-- Allow generating another outfit with one tap.
+- Add a Login field to onboarding, alongside the existing Name field, in the same screen.
+- Backend finds-or-creates an account for that login (case-insensitive, no password yet) the first time it's used.
+- Every device that logs in with the same login sees that account's own wardrobe, never anyone else's.
+- All wardrobe items and chat context are scoped per account.
 
 ## Acceptance Criteria
 
-- Weather is displayed.
-- Home screen shows "Workday" or "Weekend" for today, matching the prototype.
-- User can generate an outfit.
-- Outfit uses wardrobe items.
-- Clothing cards are clickable.
-- Tapping a card opens the wardrobe item.
-- User can regenerate another outfit.
+- Onboarding asks for both a Login and a Name.
+- Logging in with a new login creates a fresh, empty wardrobe for that account.
+- Logging in with an existing login (e.g. after reinstalling) restores that account's wardrobe.
+- Two different logins never see each other's wardrobe items or chat context.
+- Name continues to work exactly as before: local only, editable in Settings, used just for the greeting.
 
 ## Out of Scope
 
-- Automatic daily outfit generation.
-- Saved outfits.
-- Outfit history.
-- Weather-aware recommendations.
-- Calendar integration.
+- Password / real authentication.
+- Email verification.
+- Changing your login once it's set.
+- Syncing name across devices.
+- Account recovery ("forgot my login").
+
+## Technical Notes
+
+- New `app_user` table: `id`, `login` (unique, case-insensitive), `email` (nullable, unused for now), `password_hash` (nullable, unused for now — never a raw password).
+- New `user_id` column on `clothing_item`.
+- New `POST /auth/login` endpoint.
+- Mobile sends the logged-in user's id via an `X-User-Id` header on every wardrobe/chat request.
