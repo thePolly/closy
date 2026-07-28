@@ -14,7 +14,10 @@ import { saveSession } from "../src/storage/session";
 import { saveUserName } from "../src/storage/userName";
 import { colors } from "../src/theme/colors";
 
+type Step = "login" | "name";
+
 export default function OnboardingScreen() {
+  const [step, setStep] = useState<Step>("login");
   const [loginValue, setLoginValue] = useState("");
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -23,69 +26,103 @@ export default function OnboardingScreen() {
 
   const trimmedLogin = loginValue.trim();
   const trimmedName = name.trim();
-  const canContinue = trimmedLogin.length > 0 && trimmedName.length > 0 && !submitting;
 
-  const handleContinue = async () => {
-    if (!canContinue) return;
+  const handleLoginSubmit = async () => {
+    if (!trimmedLogin || submitting) return;
     setSubmitting(true);
     setError(null);
 
     try {
-      const session = await login(trimmedLogin);
-      await saveSession(session);
-      await saveUserName(trimmedName);
-      completeOnboarding();
+      const result = await login(trimmedLogin);
+      await saveSession({ id: result.id, login: result.login });
+
+      if (result.isNew) {
+        setStep("name");
+        setSubmitting(false);
+      } else {
+        completeOnboarding();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setSubmitting(false);
     }
   };
 
+  const handleNameSubmit = async () => {
+    if (!trimmedName || submitting) return;
+    setSubmitting(true);
+    await saveUserName(trimmedName);
+    completeOnboarding();
+  };
+
   return (
     <Screen style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Welcome to Closy</Text>
-        <Text style={styles.subtitle}>Let's get you set up</Text>
 
-        <TextInput
-          style={styles.input}
-          value={loginValue}
-          onChangeText={(value) => {
-            setLoginValue(value);
-            setError(null);
-          }}
-          placeholder="Login"
-          placeholderTextColor={colors.inkMuted}
-          maxLength={50}
-          autoCapitalize="none"
-          autoFocus
-          returnKeyType="next"
-        />
+        {step === "login" ? (
+          <>
+            <Text style={styles.subtitle}>Let's get you set up</Text>
 
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Your name"
-          placeholderTextColor={colors.inkMuted}
-          maxLength={50}
-          returnKeyType="done"
-          onSubmitEditing={handleContinue}
-        />
+            <TextInput
+              style={styles.input}
+              value={loginValue}
+              onChangeText={(value) => {
+                setLoginValue(value);
+                setError(null);
+              }}
+              placeholder="Login"
+              placeholderTextColor={colors.inkMuted}
+              maxLength={50}
+              autoCapitalize="none"
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleLoginSubmit}
+            />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <Pressable
-          style={[styles.button, !canContinue && styles.buttonDisabled]}
-          onPress={handleContinue}
-          disabled={!canContinue}
-        >
-          {submitting ? (
-            <ActivityIndicator color={colors.inkPrimary} />
-          ) : (
-            <Text style={styles.buttonText}>Continue</Text>
-          )}
-        </Pressable>
+            <Pressable
+              style={[styles.button, (!trimmedLogin || submitting) && styles.buttonDisabled]}
+              onPress={handleLoginSubmit}
+              disabled={!trimmedLogin || submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color={colors.inkPrimary} />
+              ) : (
+                <Text style={styles.buttonText}>Continue</Text>
+              )}
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Text style={styles.subtitle}>What should we call you?</Text>
+
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your name"
+              placeholderTextColor={colors.inkMuted}
+              maxLength={50}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleNameSubmit}
+            />
+
+            <Pressable
+              style={[styles.button, (!trimmedName || submitting) && styles.buttonDisabled]}
+              onPress={handleNameSubmit}
+              disabled={!trimmedName || submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color={colors.inkPrimary} />
+              ) : (
+                <Text style={styles.buttonText}>Continue</Text>
+              )}
+            </Pressable>
+          </>
+        )}
       </View>
     </Screen>
   );
@@ -114,7 +151,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   input: {
-    marginTop: 16,
+    marginTop: 32,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 12,

@@ -23,7 +23,7 @@ authRouter.post("/login", async (req, res) => {
   );
 
   if (existing.rows.length > 0) {
-    res.json(existing.rows[0]);
+    res.json({ ...existing.rows[0], isNew: false });
     return;
   }
 
@@ -32,5 +32,5 @@ authRouter.post("/login", async (req, res) => {
     [trimmed]
   );
 
-  res.status(201).json(created.rows[0]);
+  res.status(201).json({ ...created.rows[0], isNew: true });
 });
