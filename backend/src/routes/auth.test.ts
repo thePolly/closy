@@ -35,7 +35,7 @@ describe("POST /auth/login", () => {
     const res = await request(app).post("/auth/login").send({ login: "polina" });
 
     expect(res.status).toBe(201);
-    expect(res.body).toEqual({ id: "1", login: "polina" });
+    expect(res.body).toEqual({ id: "1", login: "polina", isNew: true });
   });
 
   it("logs in to the existing account, matching case-insensitively", async () => {
@@ -46,7 +46,7 @@ describe("POST /auth/login", () => {
     const res = await request(app).post("/auth/login").send({ login: "POLINA" });
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ id: "1", login: "polina" });
+    expect(res.body).toEqual({ id: "1", login: "polina", isNew: false });
     expect(pool.query).toHaveBeenCalledOnce(); // no INSERT for an existing login
   });
 });
