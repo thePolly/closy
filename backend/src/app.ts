@@ -1,6 +1,7 @@
 import path from "node:path";
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
+import { authRouter } from "./routes/auth";
 import { chatRouter } from "./routes/chat";
 import { healthRouter } from "./routes/health";
 import { wardrobeRouter } from "./routes/wardrobe";
@@ -13,6 +14,7 @@ export function createApp() {
   app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
   app.use("/health", healthRouter);
+  app.use("/auth", authRouter);
   app.use("/wardrobe", wardrobeRouter);
   app.use("/chat", chatRouter);
 

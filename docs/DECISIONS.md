@@ -54,6 +54,24 @@ For each choice made during MVP-0: what we picked, what the alternative was, and
 **Alternative:** Add a try/catch block inside every single route file (`wardrobe.ts`, `chat.ts`, etc.) and format the error response there each time.
 **Why:** Without this, Express's default behavior is to send back a full HTML page with the raw error and server file paths in it — not something a mobile app can read, and not something that should be shown to a user. One shared handler fixes this everywhere at once instead of having to repeat the same fix in every route file.
 
+### `X-User-Id` header with the cached id, instead of sending the raw login every request
+
+**Chosen:** Login once, cache the returned `app_user.id` locally, and send it as an `X-User-Id` header on every wardrobe/chat request. A small `requireUser` middleware looks it up once per request and attaches `req.userId`.
+**Alternative:** Send the typed login string itself on every request and have the backend look up the id each time.
+**Why:** Avoids a repeated `lower(login)` lookup on every single request — the id is looked up once, at login, and reused directly afterward.
+
+### DB-level unique index on `lower(login)` instead of an app-level check
+
+**Chosen:** `CREATE UNIQUE INDEX ... ON app_user (lower(login))`, enforced by Postgres itself.
+**Alternative:** Check for an existing login in application code before inserting (the same pattern `uniqueName()` already uses for clothing item names).
+**Why:** A login is meant to be a stable account identifier, not just a display convenience — two simultaneous signups for the same login must never both succeed. An app-level check has a race window between the check and the insert; a DB constraint closes it.
+
+### Display name stays local-only, separate from login
+
+**Chosen:** `name` (used for the Home greeting) continues to live only in `AsyncStorage`, exactly as before. Only `login` is new backend state.
+**Alternative:** Add a `name` column to `app_user` too, and sync it from Settings/onboarding on every login.
+**Why:** Login and display name are genuinely different concerns once split into two fields — syncing `name` would mean deciding what happens when a fresh login and a locally-edited name disagree, for a value that's purely cosmetic. The one tradeoff: reinstalling and logging back in restores your wardrobe, but not your name — a small one-time retype, not a data loss.
+
 ## AI / Data
 
 ### Structured JSON output instead of function calling for outfit recommendations

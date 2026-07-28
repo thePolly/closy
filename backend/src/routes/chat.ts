@@ -5,9 +5,12 @@ import { Router } from "express";
 import { generateClothingImage } from "../ai/generateClothingImage";
 import { type ChatTurn, generateStylistReply } from "../ai/generateStylistReply";
 import { pool } from "../db/pool";
+import { requireUser } from "../middleware/requireUser";
 import { saveClothingItem, UPLOADS_DIR } from "./wardrobe";
 
 export const chatRouter = Router();
+
+chatRouter.use(requireUser);
 
 chatRouter.post("/", async (req, res) => {
   const { message, history } = req.body as {
@@ -21,7 +24,8 @@ chatRouter.post("/", async (req, res) => {
   }
 
   const wardrobeResult = await pool.query(
-    "SELECT clothing_type, primary_color FROM clothing_item ORDER BY created_at DESC"
+    "SELECT clothing_type, primary_color FROM clothing_item WHERE user_id = $1 ORDER BY created_at DESC",
+    [req.userId]
   );
 
   const result = await generateStylistReply(
@@ -44,10 +48,11 @@ chatRouter.post("/", async (req, res) => {
     await writeFile(path.join(UPLOADS_DIR, filename), imageBuffer);
     const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${filename}`;
 
-    const saved = await saveClothingItem(imageUrl, {
-      ...result.item,
-      confidenceScore: null,
-    });
+    const saved = await saveClothingItem(
+      imageUrl,
+      { ...result.item, confidenceScore: null },
+      req.userId as string
+    );
 
     res.json({ reply: `Added ${saved.name} to your wardrobe!` });
   } catch (error) {

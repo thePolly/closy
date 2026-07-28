@@ -5,6 +5,12 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 vi.mock("../db/pool", () => ({ pool: { query: vi.fn() } }));
 vi.mock("../ai/analyzeClothing", () => ({ analyzeClothing: vi.fn() }));
 vi.mock("../ai/recommendOutfit", () => ({ recommendOutfit: vi.fn() }));
+vi.mock("../middleware/requireUser", () => ({
+  requireUser: (req: never, _res: never, next: () => void) => {
+    (req as { userId: string }).userId = "test-user-id";
+    next();
+  },
+}));
 
 import { analyzeClothing } from "../ai/analyzeClothing";
 import { recommendOutfit } from "../ai/recommendOutfit";
@@ -227,19 +233,19 @@ describe("PATCH /wardrobe/:id", () => {
 describe("uniqueName", () => {
   it("returns the base name when it is free", async () => {
     vi.mocked(pool.query).mockResolvedValue({ rows: [] } as never);
-    expect(await uniqueName("Jeans")).toBe("Jeans");
+    expect(await uniqueName("Jeans", "test-user-id")).toBe("Jeans");
   });
 
   it("appends the next free number when the base name is taken", async () => {
     vi.mocked(pool.query).mockResolvedValue({
       rows: [{ name: "Jeans" }, { name: "Jeans 2" }],
     } as never);
-    expect(await uniqueName("Jeans")).toBe("Jeans 3");
+    expect(await uniqueName("Jeans", "test-user-id")).toBe("Jeans 3");
   });
 
   it("matches existing names case-insensitively", async () => {
     vi.mocked(pool.query).mockResolvedValue({ rows: [{ name: "jeans" }] } as never);
-    expect(await uniqueName("Jeans")).toBe("Jeans 2");
+    expect(await uniqueName("Jeans", "test-user-id")).toBe("Jeans 2");
   });
 });
 
