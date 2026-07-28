@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { createContext, useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { getUserName } from "../src/storage/userName";
+import { getSession } from "../src/storage/session";
 
 export const OnboardingContext = createContext(() => {});
 
@@ -11,30 +11,30 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ PlayfairDisplay_700Bold });
-  const [hasName, setHasName] = useState<boolean | null>(null);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    getUserName().then((name) => setHasName(!!name));
+    getSession().then((session) => setHasSession(!!session));
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded && hasName !== null) {
+    if (fontsLoaded && hasSession !== null) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, hasName]);
+  }, [fontsLoaded, hasSession]);
 
-  if (!fontsLoaded || hasName === null) {
+  if (!fontsLoaded || hasSession === null) {
     return null;
   }
 
   return (
     <SafeAreaProvider>
-      <OnboardingContext.Provider value={() => setHasName(true)}>
+      <OnboardingContext.Provider value={() => setHasSession(true)}>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Protected guard={!hasName}>
+          <Stack.Protected guard={!hasSession}>
             <Stack.Screen name="onboarding" />
           </Stack.Protected>
-          <Stack.Protected guard={hasName}>
+          <Stack.Protected guard={hasSession}>
             <Stack.Screen name="(tabs)" />
           </Stack.Protected>
         </Stack>

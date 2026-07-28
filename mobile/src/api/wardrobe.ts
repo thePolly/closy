@@ -1,3 +1,5 @@
+import { authHeaders } from "./authHeaders";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export type AnalysisStatus = "pending" | "completed" | "failed";
@@ -43,7 +45,7 @@ async function parseErrorMessage(response: Response): Promise<string> {
 }
 
 export async function fetchWardrobe(): Promise<ClothingItem[]> {
-  const response = await fetch(`${API_URL}/wardrobe`);
+  const response = await fetch(`${API_URL}/wardrobe`, { headers: await authHeaders() });
   if (!response.ok) {
     throw new Error(`Failed to load wardrobe (${response.status})`);
   }
@@ -51,7 +53,7 @@ export async function fetchWardrobe(): Promise<ClothingItem[]> {
 }
 
 export async function fetchClothingItem(id: string): Promise<ClothingItem> {
-  const response = await fetch(`${API_URL}/wardrobe/${id}`);
+  const response = await fetch(`${API_URL}/wardrobe/${id}`, { headers: await authHeaders() });
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
   }
@@ -61,7 +63,7 @@ export async function fetchClothingItem(id: string): Promise<ClothingItem> {
 export async function renameItem(id: string, name: string): Promise<ClothingItem> {
   const response = await fetch(`${API_URL}/wardrobe/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ name }),
   });
   if (!response.ok) {
@@ -73,6 +75,7 @@ export async function renameItem(id: string, name: string): Promise<ClothingItem
 export async function retryAnalysis(id: string): Promise<ClothingItem> {
   const response = await fetch(`${API_URL}/wardrobe/${id}/retry-analysis`, {
     method: "POST",
+    headers: await authHeaders(),
   });
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -85,7 +88,7 @@ export async function fetchOutfitRecommendation(
 ): Promise<OutfitRecommendation> {
   const response = await fetch(`${API_URL}/wardrobe/recommend-outfit`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ weather }),
   });
   if (!response.ok) {
@@ -110,7 +113,7 @@ export async function uploadClothingItem(imageUri: string): Promise<ClothingItem
   const response = await fetch(`${API_URL}/wardrobe`, {
     method: "POST",
     body: formData,
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": "multipart/form-data", ...(await authHeaders()) },
   });
 
   if (!response.ok) {

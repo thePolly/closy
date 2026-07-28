@@ -2,12 +2,23 @@ import { pool } from "./pool";
 
 export async function ensureSchema(): Promise<void> {
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_user (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      login TEXT NOT NULL,
+      email TEXT,
+      password_hash TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS app_user_login_lower_idx ON app_user (lower(login));
+
     CREATE TABLE IF NOT EXISTS clothing_item (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       image_url TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES app_user(id);
     ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS clothing_type TEXT;
     ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS fit TEXT;
     ALTER TABLE clothing_item ADD COLUMN IF NOT EXISTS primary_color TEXT;

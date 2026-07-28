@@ -6,6 +6,7 @@ import multer from "multer";
 import { analyzeClothing, type ClothingAnalysis } from "../ai/analyzeClothing";
 import { recommendOutfit, type WardrobeItemSummary } from "../ai/recommendOutfit";
 import { pool } from "../db/pool";
+import { requireUser } from "../middleware/requireUser";
 
 export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "../../uploads");
 
@@ -60,17 +61,22 @@ export interface ClothingItemInput {
   confidenceScore: number | null;
 }
 
-export async function saveClothingItem(imageUrl: string, item: ClothingItemInput) {
+export async function saveClothingItem(
+  imageUrl: string,
+  item: ClothingItemInput,
+  userId: string
+) {
   const result = await pool.query(
     `INSERT INTO clothing_item (
        image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
-       season, style, material, suitable_occasions, confidence_score, analysis_status
+       season, style, material, suitable_occasions, confidence_score, analysis_status,
+       user_id
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'completed')
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'completed', $13)
      RETURNING ${SELECT_COLUMNS}`,
     [
       imageUrl,
-      await uniqueName(item.name),
+      await uniqueName(item.name, userId),
       item.clothingType,
       item.fit,
       item.primaryColor,
@@ -81,6 +87,7 @@ export async function saveClothingItem(imageUrl: string, item: ClothingItemInput
       item.material,
       item.suitableOccasions,
       item.confidenceScore,
+      userId,
     ]
   );
   return result.rows[0];
@@ -100,10 +107,14 @@ async function runAnalysis(
 }
 
 // Returns baseName if it's free, otherwise the next available "baseName N".
-// Matching is case-insensitive. Wardrobes are small, so all names are fetched
-// and compared in memory rather than with a LIKE query (avoids escaping issues).
-export async function uniqueName(baseName: string): Promise<string> {
-  const result = await pool.query("SELECT name FROM clothing_item WHERE name IS NOT NULL");
+// Matching is case-insensitive and scoped to the user. Wardrobes are small, so
+// all names are fetched and compared in memory rather than with a LIKE query
+// (avoids escaping issues).
+export async function uniqueName(baseName: string, userId: string): Promise<string> {
+  const result = await pool.query(
+    "SELECT name FROM clothing_item WHERE name IS NOT NULL AND user_id = $1",
+    [userId]
+  );
   const taken = new Set<string>(
     result.rows.map((row: { name: string }) => row.name.toLowerCase())
   );
@@ -121,17 +132,20 @@ export async function uniqueName(baseName: string): Promise<string> {
 
 export const wardrobeRouter = Router();
 
-wardrobeRouter.get("/", async (_req, res) => {
+wardrobeRouter.use(requireUser);
+
+wardrobeRouter.get("/", async (req, res) => {
   const result = await pool.query(
-    `SELECT ${SELECT_COLUMNS} FROM clothing_item ORDER BY created_at DESC`
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE user_id = $1 ORDER BY created_at DESC`,
+    [req.userId]
   );
   res.json(result.rows);
 });
 
 wardrobeRouter.get("/:id", async (req, res) => {
   const result = await pool.query(
-    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE id = $1`,
-    [req.params.id]
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE id = $1 AND user_id = $2`,
+    [req.params.id, req.userId]
   );
 
   if (result.rows.length === 0) {
@@ -155,8 +169,8 @@ wardrobeRouter.patch("/:id", async (req, res) => {
   }
 
   const result = await pool.query(
-    `UPDATE clothing_item SET name = $1 WHERE id = $2 RETURNING ${SELECT_COLUMNS}`,
-    [name.trim(), req.params.id]
+    `UPDATE clothing_item SET name = $1 WHERE id = $2 AND user_id = $3 RETURNING ${SELECT_COLUMNS}`,
+    [name.trim(), req.params.id, req.userId]
   );
 
   if (result.rows.length === 0) {
@@ -178,7 +192,8 @@ wardrobeRouter.post("/recommend-outfit", async (req, res) => {
   };
 
   const result = await pool.query(
-    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE analysis_status = 'completed'`
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE analysis_status = 'completed' AND user_id = $1`,
+    [req.userId]
   );
 
   if (result.rows.length === 0) {
@@ -226,17 +241,15 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
 
   if (outcome.status === "failed") {
     const result = await pool.query(
-      `INSERT INTO clothing_item (image_url, analysis_status) VALUES ($1, 'failed')
+      `INSERT INTO clothing_item (image_url, analysis_status, user_id) VALUES ($1, 'failed', $2)
        RETURNING ${SELECT_COLUMNS}`,
-      [imageUrl]
+      [imageUrl, req.userId]
     );
     res.status(201).json(result.rows[0]);
     return;
   }
 
-  const saved = await saveClothingItem(imageUrl, {
-    ...outcome.analysis,
-  });
+  const saved = await saveClothingItem(imageUrl, { ...outcome.analysis }, req.userId as string);
   res.status(201).json(saved);
 });
 
@@ -244,8 +257,8 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
   const { id } = req.params;
 
   const existing = await pool.query(
-    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE id = $1`,
-    [id]
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE id = $1 AND user_id = $2`,
+    [id, req.userId]
   );
 
   if (existing.rows.length === 0) {
@@ -259,7 +272,10 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
   const outcome = await runAnalysis(imageBuffer, mimeTypeForFile(filename));
 
   if (outcome.status === "failed") {
-    await pool.query("UPDATE clothing_item SET analysis_status = 'failed' WHERE id = $1", [id]);
+    await pool.query(
+      "UPDATE clothing_item SET analysis_status = 'failed' WHERE id = $1 AND user_id = $2",
+      [id, req.userId]
+    );
     res.status(502).json({ message: "Analysis failed again. Please try again later." });
     return;
   }
@@ -269,10 +285,10 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
        name = $1, clothing_type = $2, fit = $3, primary_color = $4, secondary_color = $5,
        pattern = $6, season = $7, style = $8, material = $9,
        suitable_occasions = $10, confidence_score = $11, analysis_status = 'completed'
-     WHERE id = $12
+     WHERE id = $12 AND user_id = $13
      RETURNING ${SELECT_COLUMNS}`,
     [
-      await uniqueName(outcome.analysis.name),
+      await uniqueName(outcome.analysis.name, req.userId as string),
       outcome.analysis.clothingType,
       outcome.analysis.fit,
       outcome.analysis.primaryColor,
@@ -284,6 +300,7 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
       outcome.analysis.suitableOccasions,
       outcome.analysis.confidenceScore,
       id,
+      req.userId,
     ]
   );
 

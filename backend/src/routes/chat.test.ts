@@ -5,6 +5,12 @@ vi.mock("../db/pool", () => ({ pool: { query: vi.fn() } }));
 vi.mock("../ai/generateStylistReply", () => ({ generateStylistReply: vi.fn() }));
 vi.mock("../ai/generateClothingImage", () => ({ generateClothingImage: vi.fn() }));
 vi.mock("node:fs/promises", () => ({ writeFile: vi.fn() }));
+vi.mock("../middleware/requireUser", () => ({
+  requireUser: (req: never, _res: never, next: () => void) => {
+    (req as { userId: string }).userId = "test-user-id";
+    next();
+  },
+}));
 
 import { writeFile } from "node:fs/promises";
 import { generateClothingImage } from "../ai/generateClothingImage";

@@ -1,3 +1,5 @@
+import { authHeaders } from "./authHeaders";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export interface ChatMessage {
@@ -11,7 +13,7 @@ export async function sendChatMessage(
 ): Promise<string> {
   const response = await fetch(`${API_URL}/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ message, history }),
   });
 
