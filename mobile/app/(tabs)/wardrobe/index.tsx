@@ -15,6 +15,7 @@ import {
   type ClothingItem,
   displayName,
   fetchWardrobe,
+  imageSource,
   uploadClothingItem,
 } from "../../../src/api/wardrobe";
 import { Screen } from "../../../src/components/Screen";
@@ -201,7 +202,7 @@ export default function WardrobeScreen() {
                 onPress={() => router.push(`/wardrobe/${item.id}`)}
               >
                 <View style={styles.cardImageWrapper}>
-                  <Image source={{ uri: item.image_url }} style={styles.cardImage} />
+                  <Image source={imageSource(item.image_url)} style={styles.cardImage} />
                 </View>
                 <Text style={styles.cardName} numberOfLines={1}>
                   {displayName(item)}

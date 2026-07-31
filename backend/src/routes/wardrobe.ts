@@ -10,6 +10,16 @@ import { requireUser } from "../middleware/requireUser";
 
 export const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, "../../uploads");
 
+// image_url is stored as a path relative to this server (e.g. "/uploads/x.jpg"),
+// not a full URL — the server's own public address can change (new ngrok
+// session, real deployment) without invalidating already-saved rows.
+const PUBLIC_ASSET_BASE_URL = process.env.PUBLIC_ASSET_BASE_URL ?? "";
+
+function withPublicUrl<T extends { image_url?: string }>(row: T): T {
+  if (!row.image_url) return row;
+  return { ...row, image_url: `${PUBLIC_ASSET_BASE_URL}${row.image_url}` };
+}
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: UPLOADS_DIR,
@@ -139,7 +149,7 @@ wardrobeRouter.get("/", async (req, res) => {
     `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE user_id = $1 ORDER BY created_at DESC`,
     [req.userId]
   );
-  res.json(result.rows);
+  res.json(result.rows.map(withPublicUrl));
 });
 
 wardrobeRouter.get("/:id", async (req, res) => {
@@ -153,7 +163,7 @@ wardrobeRouter.get("/:id", async (req, res) => {
     return;
   }
 
-  res.json(result.rows[0]);
+  res.json(withPublicUrl(result.rows[0]));
 });
 
 wardrobeRouter.patch("/:id", async (req, res) => {
@@ -178,7 +188,7 @@ wardrobeRouter.patch("/:id", async (req, res) => {
     return;
   }
 
-  res.json(result.rows[0]);
+  res.json(withPublicUrl(result.rows[0]));
 });
 
 function currentDayType(): "Workday" | "Weekend" {
@@ -224,7 +234,7 @@ wardrobeRouter.post("/recommend-outfit", async (req, res) => {
 
   res.json({
     description: recommendation.description,
-    items,
+    items: items.map(withPublicUrl),
     missingSuggestions: recommendation.missingSuggestions,
   });
 });
@@ -237,7 +247,7 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
 
   const imageBuffer = await readFile(req.file.path);
   const outcome = await runAnalysis(imageBuffer, req.file.mimetype);
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+  const imageUrl = `/uploads/${req.file.filename}`;
 
   if (outcome.status === "failed") {
     const result = await pool.query(
@@ -245,12 +255,12 @@ wardrobeRouter.post("/", upload.single("image"), async (req, res) => {
        RETURNING ${SELECT_COLUMNS}`,
       [imageUrl, req.userId]
     );
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(withPublicUrl(result.rows[0]));
     return;
   }
 
   const saved = await saveClothingItem(imageUrl, { ...outcome.analysis }, req.userId as string);
-  res.status(201).json(saved);
+  res.status(201).json(withPublicUrl(saved));
 });
 
 wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
@@ -267,7 +277,7 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
   }
 
   const { image_url: imageUrl } = existing.rows[0];
-  const filename = path.basename(new URL(imageUrl).pathname);
+  const filename = path.basename(imageUrl);
   const imageBuffer = await readFile(path.join(UPLOADS_DIR, filename));
   const outcome = await runAnalysis(imageBuffer, mimeTypeForFile(filename));
 
@@ -304,5 +314,5 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
     ]
   );
 
-  res.json(result.rows[0]);
+  res.json(withPublicUrl(result.rows[0]));
 });

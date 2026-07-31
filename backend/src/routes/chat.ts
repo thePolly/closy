@@ -46,7 +46,7 @@ chatRouter.post("/", async (req, res) => {
     const imageBuffer = await generateClothingImage(result.item);
     const filename = `${randomUUID()}.png`;
     await writeFile(path.join(UPLOADS_DIR, filename), imageBuffer);
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${filename}`;
+    const imageUrl = `/uploads/${filename}`;
 
     const saved = await saveClothingItem(
       imageUrl,

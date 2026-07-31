@@ -15,6 +15,7 @@ import { fetchCurrentWeather, type CurrentWeather } from "../../src/api/weather"
 import {
   displayName,
   fetchOutfitRecommendation,
+  imageSource,
   type OutfitRecommendation,
 } from "../../src/api/wardrobe";
 import { Card } from "../../src/components/Card";
@@ -176,7 +177,7 @@ export default function HomeScreen() {
                     style={styles.itemCard}
                     onPress={() => router.push(`/wardrobe/${item.id}`)}
                   >
-                    <Image source={{ uri: item.image_url }} style={styles.itemImage} />
+                    <Image source={imageSource(item.image_url)} style={styles.itemImage} />
                     <Text style={styles.itemName} numberOfLines={1}>
                       {displayName(item)}
                     </Text>
