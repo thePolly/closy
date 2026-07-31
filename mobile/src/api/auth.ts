@@ -5,7 +5,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export async function login(loginValue: string): Promise<Session> {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
     body: JSON.stringify({ login: loginValue }),
   });
 
