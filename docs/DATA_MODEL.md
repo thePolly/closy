@@ -26,7 +26,7 @@ One row per uploaded piece of clothing. Belongs to exactly one `app_user`.
 |---|---|---|
 | `id` | UUID | Primary key, generated |
 | `user_id` | UUID, nullable | FK → `app_user.id`. Owner of the item |
-| `image_url` | TEXT | See "Known issue" below |
+| `image_url` | TEXT | Relative path (e.g. `/uploads/<file>`); resolved to a full URL by prefixing `PUBLIC_ASSET_BASE_URL` at read time |
 | `name` | TEXT, nullable | AI-generated or user-edited display name |
 | `clothing_type` | TEXT, nullable | e.g. "T-shirt", "Jeans" |
 | `fit` | TEXT, nullable | e.g. "Slim Fit" |
@@ -78,11 +78,3 @@ erDiagram
 ```
 
 One `app_user` owns many `clothing_item` rows. All wardrobe and chat endpoints scope queries by `user_id` so accounts never see each other's items.
-
----
-
-## Known issue: `image_url`
-
-Today `image_url` stores a **full absolute URL** (`http://<host-at-upload-time>:3000/uploads/<file>`), built from whatever host handled the upload request ([wardrobe.ts:240](../backend/src/routes/wardrobe.ts:240)). This breaks whenever the server's public address changes (new ngrok session, real deployment, etc.) — clients on a different network than the one that served the upload can't load the image.
-
-**Planned fix:** store only the relative path (`/uploads/<file>`) and compute the full URL at read time by prefixing a configured `PUBLIC_ASSET_BASE_URL`. This makes existing rows survive any future change of the server's public address without a data migration.
