@@ -28,6 +28,12 @@ export function displayName(item: ClothingItem): string {
   return item.name ?? item.clothing_type ?? "Unnamed item";
 }
 
+// <Image> makes its own network request outside of fetch/authHeaders, so it
+// needs the ngrok-skip-browser-warning header too when API_URL is a tunnel.
+export function imageSource(url: string): { uri: string; headers: Record<string, string> } {
+  return { uri: url, headers: { "ngrok-skip-browser-warning": "true" } };
+}
+
 export interface MissingSuggestion {
   category: string;
   description: string;

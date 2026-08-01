@@ -14,6 +14,7 @@ import {
   type ClothingItem,
   displayName,
   fetchClothingItem,
+  imageSource,
   renameItem,
   retryAnalysis,
 } from "../../../src/api/wardrobe";
@@ -138,7 +139,7 @@ export default function ClothingDetailsScreen() {
     <Screen style={styles.container} edges={[]}>
       <Stack.Screen options={{ title: displayName(item) }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Image source={{ uri: item.image_url }} style={styles.image} />
+        <Image source={imageSource(item.image_url)} style={styles.image} />
 
         {editingName ? (
           <View style={styles.nameEditor}>
