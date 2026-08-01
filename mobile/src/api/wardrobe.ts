@@ -90,12 +90,13 @@ export async function retryAnalysis(id: string): Promise<ClothingItem> {
 }
 
 export async function fetchOutfitRecommendation(
-  weather: { temperature: number; condition: string } | null
+  weather: { temperature: number; condition: string } | null,
+  force = false
 ): Promise<OutfitRecommendation> {
   const response = await fetch(`${API_URL}/wardrobe/recommend-outfit`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await authHeaders()) },
-    body: JSON.stringify({ weather }),
+    body: JSON.stringify({ weather, force }),
   });
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
