@@ -17,6 +17,7 @@ export interface ClothingItem {
   style: string | null;
   material: string | null;
   suitable_occasions: string | null;
+  distinctive_details: string | null;
   confidence_score: number | null;
   analysis_status: AnalysisStatus;
   created_at: string;

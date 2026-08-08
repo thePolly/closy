@@ -50,7 +50,7 @@ chatRouter.post("/", async (req, res) => {
 
     const saved = await saveClothingItem(
       imageUrl,
-      { ...result.item, confidenceScore: null },
+      { ...result.item, distinctiveDetails: null, confidenceScore: null },
       req.userId as string
     );
 

@@ -40,8 +40,8 @@ const upload = multer({
 
 const SELECT_COLUMNS = `
   id, image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
-  season, style, material, suitable_occasions, confidence_score, analysis_status,
-  created_at
+  season, style, material, suitable_occasions, distinctive_details, confidence_score,
+  analysis_status, created_at
 `;
 
 const MIME_TYPES_BY_EXTENSION: Record<string, string> = {
@@ -68,6 +68,7 @@ export interface ClothingItemInput {
   style: string | null;
   material: string | null;
   suitableOccasions: string | null;
+  distinctiveDetails: string | null;
   confidenceScore: number | null;
 }
 
@@ -79,10 +80,10 @@ export async function saveClothingItem(
   const result = await pool.query(
     `INSERT INTO clothing_item (
        image_url, name, clothing_type, fit, primary_color, secondary_color, pattern,
-       season, style, material, suitable_occasions, confidence_score, analysis_status,
-       user_id
+       season, style, material, suitable_occasions, distinctive_details, confidence_score,
+       analysis_status, user_id
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'completed', $13)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'completed', $14)
      RETURNING ${SELECT_COLUMNS}`,
     [
       imageUrl,
@@ -96,6 +97,7 @@ export async function saveClothingItem(
       item.style,
       item.material,
       item.suitableOccasions,
+      item.distinctiveDetails,
       item.confidenceScore,
       userId,
     ]
@@ -347,8 +349,9 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
     `UPDATE clothing_item SET
        name = $1, clothing_type = $2, fit = $3, primary_color = $4, secondary_color = $5,
        pattern = $6, season = $7, style = $8, material = $9,
-       suitable_occasions = $10, confidence_score = $11, analysis_status = 'completed'
-     WHERE id = $12 AND user_id = $13
+       suitable_occasions = $10, distinctive_details = $11, confidence_score = $12,
+       analysis_status = 'completed'
+     WHERE id = $13 AND user_id = $14
      RETURNING ${SELECT_COLUMNS}`,
     [
       await uniqueName(outcome.analysis.name, req.userId as string),
@@ -361,6 +364,7 @@ wardrobeRouter.post("/:id/retry-analysis", async (req, res) => {
       outcome.analysis.style,
       outcome.analysis.material,
       outcome.analysis.suitableOccasions,
+      outcome.analysis.distinctiveDetails,
       outcome.analysis.confidenceScore,
       id,
       req.userId,
