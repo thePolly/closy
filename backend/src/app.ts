@@ -4,6 +4,7 @@ import express, { type NextFunction, type Request, type Response } from "express
 import { authRouter } from "./routes/auth";
 import { chatRouter } from "./routes/chat";
 import { healthRouter } from "./routes/health";
+import { usersRouter } from "./routes/users";
 import { wardrobeRouter } from "./routes/wardrobe";
 
 export function createApp() {
@@ -15,6 +16,7 @@ export function createApp() {
 
   app.use("/health", healthRouter);
   app.use("/auth", authRouter);
+  app.use("/users", usersRouter);
   app.use("/wardrobe", wardrobeRouter);
   app.use("/chat", chatRouter);
 

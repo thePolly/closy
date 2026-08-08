@@ -12,6 +12,9 @@ export async function ensureSchema(): Promise<void> {
 
     CREATE UNIQUE INDEX IF NOT EXISTS app_user_login_lower_idx ON app_user (lower(login));
 
+    ALTER TABLE app_user ADD COLUMN IF NOT EXISTS age_group TEXT;
+    ALTER TABLE app_user ADD COLUMN IF NOT EXISTS style_preference TEXT;
+
     CREATE TABLE IF NOT EXISTS clothing_item (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       image_url TEXT NOT NULL,
