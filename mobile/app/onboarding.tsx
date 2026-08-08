@@ -9,14 +9,18 @@ import {
 } from "react-native";
 import { OnboardingContext } from "./_layout";
 import { login } from "../src/api/auth";
+import { OptionPicker } from "../src/components/OptionPicker";
 import { Screen } from "../src/components/Screen";
 import { saveSession } from "../src/storage/session";
 import { saveUserName } from "../src/storage/userName";
 import { colors } from "../src/theme/colors";
+import { AGE_GROUPS, STYLE_PREFERENCES } from "../src/constants/profile";
 
 export default function OnboardingScreen() {
   const [loginValue, setLoginValue] = useState("");
   const [name, setName] = useState("");
+  const [ageGroup, setAgeGroup] = useState<string | null>(null);
+  const [stylePreference, setStylePreference] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const completeOnboarding = useContext(OnboardingContext);
@@ -31,7 +35,11 @@ export default function OnboardingScreen() {
     setError(null);
 
     try {
-      const session = await login(trimmedLogin);
+      const session = await login(
+        trimmedLogin,
+        ageGroup ?? undefined,
+        stylePreference ?? undefined
+      );
       await saveSession(session);
       await saveUserName(trimmedName);
       completeOnboarding();
@@ -71,6 +79,16 @@ export default function OnboardingScreen() {
           maxLength={50}
           returnKeyType="done"
           onSubmitEditing={handleContinue}
+        />
+
+        <Text style={styles.sectionLabel}>Age group (optional)</Text>
+        <OptionPicker options={AGE_GROUPS} value={ageGroup} onChange={setAgeGroup} />
+
+        <Text style={styles.sectionLabel}>Style preference (optional)</Text>
+        <OptionPicker
+          options={STYLE_PREFERENCES}
+          value={stylePreference}
+          onChange={setStylePreference}
         />
 
         {error && <Text style={styles.errorText}>{error}</Text>}
@@ -123,6 +141,13 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     fontSize: 16,
     color: colors.inkPrimary,
+  },
+  sectionLabel: {
+    marginTop: 20,
+    marginBottom: 8,
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.inkSecondary,
   },
   errorText: {
     marginTop: 12,

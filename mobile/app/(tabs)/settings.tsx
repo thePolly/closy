@@ -9,31 +9,54 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { type Profile, fetchProfile, updateProfile } from "../../src/api/profile";
 import { Card } from "../../src/components/Card";
+import { OptionPicker } from "../../src/components/OptionPicker";
 import { Screen } from "../../src/components/Screen";
+import { AGE_GROUPS, STYLE_PREFERENCES } from "../../src/constants/profile";
 import { clearUserName, getUserName, saveUserName } from "../../src/storage/userName";
 import { colors } from "../../src/theme/colors";
 
 export default function SettingsScreen() {
   const [name, setName] = useState("");
   const [storedName, setStoredName] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [justSaved, setJustSaved] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      getUserName().then((value) => {
-        if (!active) return;
-        setStoredName(value);
-        setName(value ?? "");
-        setLoading(false);
-      });
+      Promise.all([getUserName(), fetchProfile().catch(() => null)]).then(
+        ([nameValue, profileValue]) => {
+          if (!active) return;
+          setStoredName(nameValue);
+          setName(nameValue ?? "");
+          setProfile(profileValue);
+          setProfileError(profileValue ? null : "Couldn't load your profile.");
+          setLoading(false);
+        }
+      );
       return () => {
         active = false;
       };
     }, [])
   );
+
+  // Selecting a pill saves immediately — optimistic update, reverted on failure.
+  const handleUpdateProfile = async (update: { age_group?: string; style_preference?: string }) => {
+    if (!profile) return;
+    const previous = profile;
+    setProfile({ ...profile, ...update });
+    try {
+      setProfile(await updateProfile(update));
+      setProfileError(null);
+    } catch (error) {
+      setProfile(previous);
+      setProfileError(error instanceof Error ? error.message : "Couldn't save. Please try again.");
+    }
+  };
 
   // Dismisses the keyboard and persists the name in the same tap: saves a
   // trimmed non-empty value, or clears the stored name if the field was
@@ -89,6 +112,25 @@ export default function SettingsScreen() {
 
             {justSaved && <Text style={styles.savedText}>Saved</Text>}
           </Card>
+
+          <Card style={styles.card}>
+            <Text style={styles.label}>Age group</Text>
+            <OptionPicker
+              options={AGE_GROUPS}
+              value={profile?.age_group ?? null}
+              onChange={(value) => handleUpdateProfile({ age_group: value })}
+            />
+
+            <Text style={[styles.label, styles.secondLabel]}>Style preference</Text>
+            <OptionPicker
+              options={STYLE_PREFERENCES}
+              value={profile?.style_preference ?? null}
+              onChange={(value) => handleUpdateProfile({ style_preference: value })}
+            />
+
+            <Text style={styles.hint}>Helps Closy tailor outfit recommendations to you.</Text>
+            {profileError && <Text style={styles.errorText}>{profileError}</Text>}
+          </Card>
         </View>
       </TouchableWithoutFeedback>
     </Screen>
@@ -125,6 +167,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: colors.inkPrimary,
+  },
+  secondLabel: {
+    marginTop: 16,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 13,
+    color: "#B3261E",
   },
   input: {
     marginTop: 10,
