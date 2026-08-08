@@ -26,6 +26,14 @@
 ## ✅ v0.6.0
 - Login (no password yet) and per-account wardrobes
 
-## 🚧 v0.7.0
+## ✅ v0.7.0
 - Server-side caching of the daily outfit recommendation (per user, per day)
 - image_url stored as a relative path, resolved via PUBLIC_ASSET_BASE_URL
+
+## 🚧 v0.8.0
+- Distinctive garment details (e.g. bows, ruffles, trim) and their color, factored into recommendations
+- Age group and style preference, set at onboarding, used to personalize recommendations
+- Recommendation prompt rewritten for more deliberate, professional-stylist-style reasoning
+
+## v0.9.0 (planned)
+- Save a liked daily recommendation as a permanent outfit ("My Outfits")
