@@ -15,9 +15,9 @@ usersRouter.get("/me", async (req, res) => {
   res.json(result.rows[0]);
 });
 
-function validateField(value: unknown, label: string): string | null {
-  if (typeof value !== "string" || value.trim().length === 0 || value.trim().length > 30) {
-    throw new Error(`${label} must be a non-empty string (max 30 characters)`);
+function validateField(value: unknown, label: string, maxLength: number): string | null {
+  if (typeof value !== "string" || value.trim().length === 0 || value.trim().length > maxLength) {
+    throw new Error(`${label} must be a non-empty string (max ${maxLength} characters)`);
   }
   return value.trim();
 }
@@ -32,9 +32,10 @@ usersRouter.patch("/me", async (req, res) => {
   let stylePreference: string | null = null;
 
   try {
-    if (age_group !== undefined) ageGroup = validateField(age_group, "age_group");
+    if (age_group !== undefined) ageGroup = validateField(age_group, "age_group", 30);
     if (style_preference !== undefined) {
-      stylePreference = validateField(style_preference, "style_preference");
+      // Comma-separated tags (e.g. "Classic, Minimalist") — several tags fit well within 200.
+      stylePreference = validateField(style_preference, "style_preference", 200);
     }
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : String(error) });

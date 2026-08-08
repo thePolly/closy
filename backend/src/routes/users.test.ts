@@ -76,10 +76,30 @@ describe("PATCH /users/me", () => {
     expect(res.body.message).toMatch(/age_group/);
   });
 
+  it("accepts a multi-tag style_preference within the 200-character limit", async () => {
+    vi.mocked(pool.query).mockResolvedValue({
+      rows: [
+        {
+          id: "test-user-id",
+          login: "polina",
+          age_group: null,
+          style_preference: "Classic, Minimalist",
+        },
+      ],
+    } as never);
+
+    const res = await request(app)
+      .patch("/users/me")
+      .send({ style_preference: "Classic, Minimalist" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.style_preference).toBe("Classic, Minimalist");
+  });
+
   it("rejects a style_preference that's too long", async () => {
     const res = await request(app)
       .patch("/users/me")
-      .send({ style_preference: "a".repeat(31) });
+      .send({ style_preference: "a".repeat(201) });
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/style_preference/);
   });

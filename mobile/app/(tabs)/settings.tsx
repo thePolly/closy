@@ -9,8 +9,14 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { type Profile, fetchProfile, updateProfile } from "../../src/api/profile";
+import {
+  type Profile,
+  fetchProfile,
+  parseStylePreferences,
+  updateProfile,
+} from "../../src/api/profile";
 import { Card } from "../../src/components/Card";
+import { MultiOptionPicker } from "../../src/components/MultiOptionPicker";
 import { OptionPicker } from "../../src/components/OptionPicker";
 import { Screen } from "../../src/components/Screen";
 import { AGE_GROUPS, STYLE_PREFERENCES } from "../../src/constants/profile";
@@ -45,12 +51,25 @@ export default function SettingsScreen() {
   );
 
   // Selecting a pill saves immediately — optimistic update, reverted on failure.
-  const handleUpdateProfile = async (update: { age_group?: string; style_preference?: string }) => {
+  const handleUpdateAgeGroup = async (age_group: string) => {
     if (!profile) return;
     const previous = profile;
-    setProfile({ ...profile, ...update });
+    setProfile({ ...profile, age_group });
     try {
-      setProfile(await updateProfile(update));
+      setProfile(await updateProfile({ age_group }));
+      setProfileError(null);
+    } catch (error) {
+      setProfile(previous);
+      setProfileError(error instanceof Error ? error.message : "Couldn't save. Please try again.");
+    }
+  };
+
+  const handleUpdateStylePreferences = async (stylePreferences: string[]) => {
+    if (!profile) return;
+    const previous = profile;
+    setProfile({ ...profile, style_preference: stylePreferences.join(", ") });
+    try {
+      setProfile(await updateProfile({ style_preferences: stylePreferences }));
       setProfileError(null);
     } catch (error) {
       setProfile(previous);
@@ -118,14 +137,14 @@ export default function SettingsScreen() {
             <OptionPicker
               options={AGE_GROUPS}
               value={profile?.age_group ?? null}
-              onChange={(value) => handleUpdateProfile({ age_group: value })}
+              onChange={handleUpdateAgeGroup}
             />
 
             <Text style={[styles.label, styles.secondLabel]}>Style preference</Text>
-            <OptionPicker
+            <MultiOptionPicker
               options={STYLE_PREFERENCES}
-              value={profile?.style_preference ?? null}
-              onChange={(value) => handleUpdateProfile({ style_preference: value })}
+              values={parseStylePreferences(profile?.style_preference ?? null)}
+              onChange={handleUpdateStylePreferences}
             />
 
             <Text style={styles.hint}>Helps Closy tailor outfit recommendations to you.</Text>

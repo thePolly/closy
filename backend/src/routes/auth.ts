@@ -8,8 +8,8 @@ const SELECT_COLUMNS = "id, login, age_group, style_preference";
 // Only a non-empty string within a sane length is kept; anything else (missing,
 // wrong type, blank) becomes null rather than failing the whole login — these
 // are optional, skippable-at-onboarding fields, not identity like `login`.
-function optionalField(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 && value.trim().length <= 30
+function optionalField(value: unknown, maxLength: number): string | null {
+  return typeof value === "string" && value.trim().length > 0 && value.trim().length <= maxLength
     ? value.trim()
     : null;
 }
@@ -48,7 +48,7 @@ authRouter.post("/login", async (req, res) => {
   const created = await pool.query(
     `INSERT INTO app_user (login, age_group, style_preference) VALUES ($1, $2, $3)
      RETURNING ${SELECT_COLUMNS}`,
-    [trimmed, optionalField(age_group), optionalField(style_preference)]
+    [trimmed, optionalField(age_group, 30), optionalField(style_preference, 200)]
   );
 
   res.status(201).json(created.rows[0]);

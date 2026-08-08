@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { OnboardingContext } from "./_layout";
 import { login } from "../src/api/auth";
+import { MultiOptionPicker } from "../src/components/MultiOptionPicker";
 import { OptionPicker } from "../src/components/OptionPicker";
 import { Screen } from "../src/components/Screen";
 import { saveSession } from "../src/storage/session";
@@ -20,7 +21,7 @@ export default function OnboardingScreen() {
   const [loginValue, setLoginValue] = useState("");
   const [name, setName] = useState("");
   const [ageGroup, setAgeGroup] = useState<string | null>(null);
-  const [stylePreference, setStylePreference] = useState<string | null>(null);
+  const [stylePreferences, setStylePreferences] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const completeOnboarding = useContext(OnboardingContext);
@@ -35,11 +36,7 @@ export default function OnboardingScreen() {
     setError(null);
 
     try {
-      const session = await login(
-        trimmedLogin,
-        ageGroup ?? undefined,
-        stylePreference ?? undefined
-      );
+      const session = await login(trimmedLogin, ageGroup ?? undefined, stylePreferences);
       await saveSession(session);
       await saveUserName(trimmedName);
       completeOnboarding();
@@ -85,10 +82,10 @@ export default function OnboardingScreen() {
         <OptionPicker options={AGE_GROUPS} value={ageGroup} onChange={setAgeGroup} />
 
         <Text style={styles.sectionLabel}>Style preference (optional)</Text>
-        <OptionPicker
+        <MultiOptionPicker
           options={STYLE_PREFERENCES}
-          value={stylePreference}
-          onChange={setStylePreference}
+          values={stylePreferences}
+          onChange={setStylePreferences}
         />
 
         {error && <Text style={styles.errorText}>{error}</Text>}

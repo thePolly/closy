@@ -6,6 +6,7 @@ export const STYLE_PREFERENCES = [
   "Classic",
   "Minimalist",
   "Streetwear",
-  "Romantic",
+  "Feminine",
   "Edgy",
+  "Sporty",
 ] as const;
