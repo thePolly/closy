@@ -32,6 +32,7 @@ const sampleAnalysis = {
   style: "Casual",
   material: "Cotton",
   suitableOccasions: "Everyday",
+  distinctiveDetails: null,
   confidenceScore: 0.9,
 };
 

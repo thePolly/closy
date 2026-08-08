@@ -11,6 +11,7 @@ export interface ClothingAnalysis {
   style: string;
   material: string | null;
   suitableOccasions: string | null;
+  distinctiveDetails: string | null;
   confidenceScore: number;
 }
 
@@ -36,6 +37,7 @@ const RESPONSE_SCHEMA = {
     },
     material: { type: "STRING" },
     suitableOccasions: { type: "STRING" },
+    distinctiveDetails: { type: "STRING" },
     confidenceScore: { type: "NUMBER" },
   },
   required: ["name", "clothingType", "fit", "primaryColor", "pattern", "season", "style", "confidenceScore"],
@@ -51,6 +53,7 @@ const PROMPT = `You are analyzing a photo of a single clothing item for a wardro
 - style
 - material, only if confidently identifiable
 - suitable occasions, only if recognizable
+- distinctive decorative details, only if present (e.g. bows, ruffles, peplum, ties, contrasting buttons, lace trim, embroidery) — name the detail and its color when the color differs from the item's primary color, e.g. "black bow at the waist" or "purple button placket"
 - an overall confidence score from 0 to 1 for this detection
 
 Respond with only the clothing item's attributes, no extra commentary.`;
@@ -127,6 +130,7 @@ export async function analyzeClothing(
     style: parsed.style,
     material: parsed.material ?? null,
     suitableOccasions: parsed.suitableOccasions ?? null,
+    distinctiveDetails: parsed.distinctiveDetails ?? null,
     confidenceScore: parsed.confidenceScore,
   };
 }

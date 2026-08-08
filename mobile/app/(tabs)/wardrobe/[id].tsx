@@ -49,6 +49,7 @@ function buildRows(item: ClothingItem): DetailRow[] {
     { label: "Style", value: display(item.style) },
     { label: "Material", value: display(item.material) },
     { label: "Suitable occasions", value: display(item.suitable_occasions) },
+    { label: "Distinctive details", value: display(item.distinctive_details) },
     { label: "Confidence", value: displayConfidence(item.confidence_score) },
   ];
 }
