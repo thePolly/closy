@@ -263,9 +263,19 @@ wardrobeRouter.post("/recommend-outfit", async (req, res) => {
     style: row.style,
     material: row.material,
     suitableOccasions: row.suitable_occasions,
+    distinctiveDetails: row.distinctive_details,
   }));
 
-  const recommendation = await recommendOutfit(summaries, weather ?? null, currentDayType());
+  const profileResult = await pool.query(
+    "SELECT age_group, style_preference FROM app_user WHERE id = $1",
+    [req.userId]
+  );
+  const persona = {
+    ageGroup: profileResult.rows[0]?.age_group ?? null,
+    stylePreference: profileResult.rows[0]?.style_preference ?? null,
+  };
+
+  const recommendation = await recommendOutfit(summaries, weather ?? null, currentDayType(), persona);
 
   const items = result.rows.filter((row) => recommendation.itemIds.includes(row.id));
 
