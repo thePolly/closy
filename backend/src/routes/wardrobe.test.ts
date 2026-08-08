@@ -270,6 +270,7 @@ describe("POST /wardrobe/recommend-outfit", () => {
           { id: "3", name: "Black Blazer", clothing_type: "Blazer" },
         ],
       } as never) // wardrobe select
+      .mockResolvedValueOnce({ rows: [{ age_group: null, style_preference: null }] } as never) // profile lookup
       .mockResolvedValueOnce({ rows: [] } as never); // upsert into daily_recommendation
     vi.mocked(recommendOutfit).mockResolvedValue({
       description: "A crisp white tee with jeans — easy and comfortable for today.",
@@ -292,6 +293,7 @@ describe("POST /wardrobe/recommend-outfit", () => {
       .mockResolvedValueOnce({
         rows: [{ id: "1", name: "White T-Shirt", clothing_type: "T-Shirt" }],
       } as never) // wardrobe select
+      .mockResolvedValueOnce({ rows: [{ age_group: null, style_preference: null }] } as never) // profile lookup
       .mockResolvedValueOnce({ rows: [] } as never); // upsert into daily_recommendation
     vi.mocked(recommendOutfit).mockResolvedValue({
       description: "Your white tee works, but you have no bottoms or shoes saved yet.",
@@ -306,6 +308,38 @@ describe("POST /wardrobe/recommend-outfit", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.missingSuggestions).toHaveLength(2);
+  });
+
+  it("passes the user's age group, style preference, and item details to recommendOutfit", async () => {
+    vi.mocked(pool.query)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: "1",
+            name: "White Blouse",
+            clothing_type: "Blouse",
+            distinctive_details: "black bow at the collar",
+          },
+        ],
+      } as never) // wardrobe select
+      .mockResolvedValueOnce({
+        rows: [{ age_group: "30s", style_preference: "Minimalist" }],
+      } as never) // profile lookup
+      .mockResolvedValueOnce({ rows: [] } as never); // upsert into daily_recommendation
+    vi.mocked(recommendOutfit).mockResolvedValue({
+      description: "A minimalist, put-together look.",
+      itemIds: ["1"],
+      missingSuggestions: [],
+    });
+
+    await request(app).post("/wardrobe/recommend-outfit").send({ force: true });
+
+    expect(recommendOutfit).toHaveBeenCalledWith(
+      [expect.objectContaining({ id: "1", distinctiveDetails: "black bow at the collar" })],
+      null,
+      expect.any(String),
+      { ageGroup: "30s", stylePreference: "Minimalist" }
+    );
   });
 
   it("returns the cached recommendation without calling Gemini when one exists for today", async () => {
