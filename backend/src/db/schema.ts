@@ -34,5 +34,14 @@ export async function ensureSchema(): Promise<void> {
 
     ALTER TABLE clothing_item ALTER COLUMN clothing_type DROP NOT NULL;
     ALTER TABLE clothing_item DROP COLUMN IF EXISTS color;
+
+    CREATE TABLE IF NOT EXISTS daily_recommendation (
+      user_id UUID PRIMARY KEY REFERENCES app_user(id),
+      date DATE NOT NULL,
+      description TEXT NOT NULL,
+      item_ids TEXT NOT NULL,
+      missing_suggestions TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
   `);
 }

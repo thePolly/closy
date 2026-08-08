@@ -23,5 +23,9 @@
 - Clickable outfit cards
 - Weather and weekday on Home screen
 
-## 🚧 v0.6.0
+## ✅ v0.6.0
 - Login (no password yet) and per-account wardrobes
+
+## 🚧 v0.7.0
+- Server-side caching of the daily outfit recommendation (per user, per day)
+- image_url stored as a relative path, resolved via PUBLIC_ASSET_BASE_URL

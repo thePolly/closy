@@ -196,10 +196,45 @@ function currentDayType(): "Workday" | "Weekend" {
   return day === 0 || day === 6 ? "Weekend" : "Workday";
 }
 
+// Uses the server's UTC calendar date as the cache key. Good enough for MVP —
+// worst case a user near midnight sees a fresh recommendation slightly early
+// or late relative to their own local day.
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function itemsByIds(userId: string, ids: string[]) {
+  if (ids.length === 0) return [];
+  const result = await pool.query(
+    `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE user_id = $1 AND id = ANY($2::uuid[])`,
+    [userId, ids]
+  );
+  const byId = new Map(result.rows.map((row) => [row.id, row]));
+  return ids.map((id) => byId.get(id)).filter((row) => row !== undefined);
+}
+
 wardrobeRouter.post("/recommend-outfit", async (req, res) => {
-  const { weather } = req.body as {
+  const { weather, force } = req.body as {
     weather?: { temperature: number; condition: string } | null;
+    force?: boolean;
   };
+
+  if (!force) {
+    const cached = await pool.query(
+      "SELECT description, item_ids, missing_suggestions FROM daily_recommendation WHERE user_id = $1 AND date = $2",
+      [req.userId, today()]
+    );
+    if (cached.rows.length > 0) {
+      const row = cached.rows[0];
+      const items = await itemsByIds(req.userId as string, JSON.parse(row.item_ids));
+      res.json({
+        description: row.description,
+        items: items.map(withPublicUrl),
+        missingSuggestions: JSON.parse(row.missing_suggestions),
+      });
+      return;
+    }
+  }
 
   const result = await pool.query(
     `SELECT ${SELECT_COLUMNS} FROM clothing_item WHERE analysis_status = 'completed' AND user_id = $1`,
@@ -231,6 +266,24 @@ wardrobeRouter.post("/recommend-outfit", async (req, res) => {
   const recommendation = await recommendOutfit(summaries, weather ?? null, currentDayType());
 
   const items = result.rows.filter((row) => recommendation.itemIds.includes(row.id));
+
+  await pool.query(
+    `INSERT INTO daily_recommendation (user_id, date, description, item_ids, missing_suggestions)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (user_id) DO UPDATE SET
+       date = EXCLUDED.date,
+       description = EXCLUDED.description,
+       item_ids = EXCLUDED.item_ids,
+       missing_suggestions = EXCLUDED.missing_suggestions,
+       created_at = now()`,
+    [
+      req.userId,
+      today(),
+      recommendation.description,
+      JSON.stringify(recommendation.itemIds),
+      JSON.stringify(recommendation.missingSuggestions),
+    ]
+  );
 
   res.json({
     description: recommendation.description,

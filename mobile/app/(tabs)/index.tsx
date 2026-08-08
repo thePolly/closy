@@ -94,19 +94,28 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const handleGenerateOutfit = async () => {
+  const handleGenerateOutfit = async (force = false) => {
     setOutfit({ status: "loading" });
     try {
       const weatherPayload =
         weather.status === "ready"
           ? { temperature: weather.data.temperature, condition: weather.data.condition }
           : null;
-      const data = await fetchOutfitRecommendation(weatherPayload);
+      const data = await fetchOutfitRecommendation(weatherPayload, force);
       setOutfit({ status: "ready", data });
     } catch {
       setOutfit({ status: "error" });
     }
   };
+
+  // Auto-load today's pick once weather is known (or known unavailable), so
+  // opening the app is enough — no button press needed. The server returns
+  // today's cached recommendation if one already exists, so this doesn't
+  // cost a fresh AI call on repeat opens.
+  useEffect(() => {
+    if (weather.status === "loading" || outfit.status !== "idle") return;
+    handleGenerateOutfit();
+  }, [weather.status]);
 
   return (
     <Screen style={styles.container}>
@@ -196,7 +205,7 @@ export default function HomeScreen() {
 
         <Pressable
           style={styles.generateButton}
-          onPress={handleGenerateOutfit}
+          onPress={() => handleGenerateOutfit(true)}
           disabled={outfit.status === "loading"}
         >
           {outfit.status === "loading" ? (
